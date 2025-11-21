@@ -219,9 +219,7 @@ const GroupStatsTab = ({ route }: any) => {
     return member ? getMemberName(member) : 'Ai đó';
   };
 
-  if (l1 || l2 || l3 || l4) {
-    return <ActivityIndicator size="large" color={APP_COLOR.ORANGE} style={styles.center} />;
-  }
+
 
   // --- LOGIC TÍNH TOÁN THỐNG KÊ (LOẠI BỎ THANH TOÁN NỢ) ---
   const settlementBillIds = useMemo(() => {
@@ -267,6 +265,9 @@ const GroupStatsTab = ({ route }: any) => {
     
   const myActualCost = myTotalPaid - myNetBalance;
 
+  if (l1 || l2 || l3 || l4) {
+    return <ActivityIndicator size="large" color={APP_COLOR.ORANGE} style={styles.center} />;
+  }
   // ... (renderPersonalStats & renderBalanceList giữ nguyên) ...
   const renderPersonalStats = () => {
      const isDebt = myNetBalance < 0;
