@@ -8,4 +8,5 @@ export interface Debt {
   toUserId: string;   // Người được trả
   amount: number;
   status: DebtStatus;
+  groupName?: string;
 }

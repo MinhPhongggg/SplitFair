@@ -1,4 +1,4 @@
-import React, { useState, useLayoutEffect } from 'react';
+import React, { useState, useLayoutEffect, useEffect } from 'react';
 import {
   Image,
   StyleSheet,
@@ -25,6 +25,14 @@ import { getURLBaseBackend } from '@/utils/api';
 import { useToast } from '@/context/toast.context';
 import ConfirmModal from '@/component/ConfirmModal';
 import Avatar from '@/component/Avatar';
+
+const PREDEFINED_AVATARS = [
+  'https://avatar.iran.liara.run/public/boy?username=User1',
+  'https://avatar.iran.liara.run/public/girl?username=User2',
+  'https://avatar.iran.liara.run/public/boy?username=User3',
+  'https://avatar.iran.liara.run/public/girl?username=User4',
+  'https://avatar.iran.liara.run/public/job/doctor/male',
+];
 
 // --- Components ---
 
@@ -73,6 +81,7 @@ const AccountPage = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [userName, setUserName] = useState(appState?.userName || '');
   const [email, setEmail] = useState(appState?.email || '');
+  const [selectedAvatar, setSelectedAvatar] = useState(appState?.avatar || '');
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   // Change Password State
@@ -92,11 +101,20 @@ const AccountPage = () => {
     });
   }, [navigation]);
 
+  // Sync state when appState changes
+  useEffect(() => {
+    if (appState) {
+      setUserName(appState.userName);
+      setEmail(appState.email || '');
+      setSelectedAvatar(appState.avatar || '');
+    }
+  }, [appState]);
+
   // 4. Handlers
   const handleUpdate = () => {
     if (!appState?.userId) return;
     updateUser(
-      { id: String(appState.userId), name: userName, email: email },
+      { id: String(appState.userId), name: userName, email: email, avatar: selectedAvatar },
       { 
         onSuccess: () => {
             setIsEditing(false);
@@ -161,13 +179,6 @@ const AccountPage = () => {
     }
   };
 
-  const renderAvatar = (size: number) => {
-    if (appState?.avatar) {
-      return <Image source={{ uri: `${backendUrl}${appState.avatar}` }} style={{ width: size, height: size, borderRadius: size / 2 }} />;
-    }
-    return <Avatar name={appState?.userName || 'User'} size={size} />;
-  };
-
   // --- Render Edit Mode ---
   if (isEditing) {
     return (
@@ -183,14 +194,32 @@ const AccountPage = () => {
         <ScrollView contentContainerStyle={styles.editContent}>
           <View style={styles.center}>
             <View style={styles.avatarContainerLarge}>
-                {renderAvatar(120)}
-                <TouchableOpacity style={styles.cameraButton}>
-                  <Ionicons name="camera" size={20} color="white" />
-                </TouchableOpacity>
+                <Avatar name={userName || 'User'} avatar={selectedAvatar} size={120} />
             </View>
+
+            <Text style={styles.selectAvatarLabel}></Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.avatarList} contentContainerStyle={{ paddingHorizontal: 5 }}>
+              {PREDEFINED_AVATARS.map((url, index) => (
+                <TouchableOpacity 
+                  key={index} 
+                  onPress={() => setSelectedAvatar(url)}
+                  style={[
+                    styles.avatarOption, 
+                    selectedAvatar === url && styles.avatarOptionSelected
+                  ]}
+                >
+                  <Image source={{ uri: url }} style={styles.avatarOptionImage} />
+                  {selectedAvatar === url && (
+                    <View style={styles.checkIcon}>
+                      <Ionicons name="checkmark-circle" size={24} color={APP_COLOR.ORANGE} />
+                    </View>
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </View>
 
-          <View style={{ gap: 20, marginTop: 20 }}>
+          <View style={{ gap: 20, marginTop: 10 }}>
             <ShareInput
               title="Tên người dùng"
               value={userName}
@@ -229,7 +258,7 @@ const AccountPage = () => {
       {/* Profile Header */}
       <View style={styles.profileHeader}>
         <View style={{ marginRight: 15 }}>
-            {renderAvatar(60)}
+            <Avatar name={appState?.userName || 'User'} avatar={appState?.avatar} size={60} />
         </View>
         <View style={styles.profileInfo}>
           <Text style={styles.profileName}>{appState?.userName || 'Người dùng'}</Text>
@@ -435,16 +464,37 @@ const styles = StyleSheet.create({
     position: 'relative',
     shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 8, elevation: 5,
   },
-  cameraButton: {
-    position: 'absolute', bottom: 0, right: 0,
-    backgroundColor: APP_COLOR.ORANGE, width: 36, height: 36, borderRadius: 18,
-    justifyContent: 'center', alignItems: 'center', borderWidth: 3, borderColor: 'white',
-  },
+
   button: {
     padding: 16, borderRadius: 12, alignItems: 'center', marginTop: 10,
   },
   saveButton: { backgroundColor: APP_COLOR.ORANGE },
   buttonText: { color: 'white', fontSize: 16, fontWeight: 'bold' },
+
+  // Avatar Selection Styles
+  selectAvatarLabel: {
+    marginTop: 20, marginBottom: 10, fontSize: 14, color: '#666', fontWeight: '600'
+  },
+  avatarList: {
+    flexDirection: 'row', marginBottom: 10,
+  },
+  avatarOption: {
+    marginRight: 15,
+    padding: 2,
+    borderRadius: 30,
+    borderWidth: 2,
+    borderColor: 'transparent',
+    position: 'relative',
+  },
+  avatarOptionSelected: {
+    borderColor: APP_COLOR.ORANGE,
+  },
+  avatarOptionImage: {
+    width: 50, height: 50, borderRadius: 25,
+  },
+  checkIcon: {
+    position: 'absolute', bottom: -5, right: -5, backgroundColor: 'white', borderRadius: 12,
+  },
 
   // --- Modal Styles ---
   modalOverlay: {

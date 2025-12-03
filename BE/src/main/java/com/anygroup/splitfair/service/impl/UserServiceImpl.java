@@ -71,6 +71,11 @@ public class UserServiceImpl implements UserService {
         existingUser.setUserName(dto.getName());
         existingUser.setEmail(dto.getEmail());
         existingUser.setStatus(dto.getStatus());
+        
+        // Cập nhật avatar nếu có
+        if (dto.getAvatar() != null) {
+            existingUser.setAvatar(dto.getAvatar());
+        }
 
         // Cập nhật role nếu có
         if (dto.getRoleId() != null) {

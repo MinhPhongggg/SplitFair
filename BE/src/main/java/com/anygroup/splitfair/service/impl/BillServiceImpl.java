@@ -134,7 +134,11 @@ public class BillServiceImpl implements BillService {
     public void deleteBill(UUID id) {
         Bill bill = billRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Bill not found with id: " + id));
-        expenseRepository.deleteByBill_Id(id);
+        // Lấy danh sách expense để xóa (kích hoạt cascade xóa Debt & Share)
+        List<Expense> expenses = expenseRepository.findByBill(bill);
+        expenseRepository.deleteAll(expenses);
         billRepository.delete(bill);
     }
 }
+
+

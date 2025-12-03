@@ -21,8 +21,15 @@ const RootPage = () => {
         }
 
         const res = await getAccountAPI(); // BE trả về thẳng { token, userName, role }
-        if (res?.token) {
-          setAppState(res); // lưu state
+        
+        // Nếu có token (từ login/register) hoặc có email (từ getAccount)
+        if (res?.token || res?.email) {
+          // Nếu res không có token (trường hợp getAccount), ta lấy token từ AsyncStorage
+          const finalState = {
+            ...res,
+            token: res.token || token,
+          };
+          setAppState(finalState); // lưu state
           router.replace("/(tabs)"); // chuyển vào tab chính
         } else {
           router.replace("/(auth)/welcome");

@@ -16,6 +16,7 @@ public interface DebtMapper {
     @Mapping(source = "expense.id", target = "expenseId")
     @Mapping(source = "amountFrom.id", target = "fromUserId")
     @Mapping(source = "amountTo.id", target = "toUserId")
+    @Mapping(source = "expense.bill.group.groupName", target = "groupName")
     DebtDTO toDTO(Debt entity);
 
     // DTO → Entity

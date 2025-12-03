@@ -39,7 +39,7 @@ const GroupBillsTab = ({ route }: any) => {
       </View>
       <View style={styles.itemContent}>
         <Text style={styles.itemName}>{item.description}</Text>
-        <Text style={styles.itemStatus}>{item.status}</Text>
+        <Text style={styles.itemDate}>{new Date(item.createdTime).toLocaleDateString('vi-VN')}</Text>
       </View>
       <View style={styles.itemAmountContainer}>
         <Text style={styles.itemAmount}>
@@ -120,9 +120,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
-  itemStatus: {
+  itemDate: {
     fontSize: 14,
     color: 'gray',
+
   },
   itemAmountContainer: {
     flexDirection: 'row',

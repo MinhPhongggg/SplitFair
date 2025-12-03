@@ -56,7 +56,7 @@ export const printAsyncStorage = () => {
 
 export const getURLBaseBackend = () => {
   const backend =
-    Platform.OS === "android"
+    Platform.OS === "android" 
       ? process.env.EXPO_PUBLIC_ANDROID_API_URL
       : process.env.EXPO_PUBLIC_IOS_API_URL;
   return backend;

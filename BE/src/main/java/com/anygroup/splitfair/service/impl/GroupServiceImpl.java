@@ -7,7 +7,9 @@ import com.anygroup.splitfair.mapper.GroupMapper;
 import com.anygroup.splitfair.mapper.GroupMemberMapper;
 import com.anygroup.splitfair.model.*;
 import com.anygroup.splitfair.repository.*;
+import com.anygroup.splitfair.enums.NotificationType;
 import com.anygroup.splitfair.service.GroupService;
+import com.anygroup.splitfair.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,7 +29,8 @@ public class GroupServiceImpl implements GroupService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final GroupMapper groupMapper;
-    private final GroupMemberMapper groupMemberMapper; // ✅ thêm mapper này
+    private final GroupMemberMapper groupMemberMapper;
+    private final NotificationService notificationService; // Inject NotificationService
 
     @Override
     public GroupDTO createGroup(GroupDTO dto, UUID creatorId) {
@@ -142,6 +145,7 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     public void addMemberToGroup(UUID groupId, UUID userId) {
+        System.out.println("Adding member " + userId + " to group " + groupId); // LOG
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new RuntimeException("Group not found with id: " + groupId));
 
@@ -162,6 +166,17 @@ public class GroupServiceImpl implements GroupService {
                 .build();
 
         groupMemberRepository.save(newMember);
+
+        System.out.println("Member added. Sending notification to " + userId); // LOG
+        // Gửi thông báo cho user
+        notificationService.createNotification(
+                userId,
+                "Tham gia nhóm",
+                "Bạn đã được thêm vào nhóm " + group.getGroupName(),
+                NotificationType.GROUP_INVITE,
+                group.getId().toString()
+        );
+        System.out.println("Notification sent to " + userId); // LOG
     }
 
     @Override

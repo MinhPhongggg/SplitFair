@@ -13,4 +13,5 @@ public class DebtDTO {
     private UUID toUserId;   // người được trả
     private BigDecimal amount;
     private DebtStatus status;
+    private String groupName;
 }

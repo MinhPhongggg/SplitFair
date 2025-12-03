@@ -8,7 +8,6 @@ import { Octicons } from "@expo/vector-icons";
 
 const TabLayout = () => {
   const getIcons = (routeName: string, focused: boolean, size: number) => {
-    // ... (phần code getIcons của bạn giữ nguyên) ...
     if (routeName === "index") {
       return (
         <Ionicons
@@ -28,6 +27,16 @@ const TabLayout = () => {
       );
     }
     
+    // 👇 THÊM ICON CHO TAB CÔNG NỢ
+    if (routeName === "debts") {
+      return (
+        <Ionicons
+          name={focused ? "wallet" : "wallet-outline"}
+          size={size}
+          color={focused ? APP_COLOR.ORANGE : APP_COLOR.GREY}
+        />
+      );
+    }
    
     if (routeName === "notification") {
       return focused ? (
@@ -53,6 +62,7 @@ const TabLayout = () => {
     }
     return <></>;
   };
+
   return (
     <Tabs
       screenOptions={({ route }) => ({
@@ -67,25 +77,34 @@ const TabLayout = () => {
       <Tabs.Screen
         name="index"
         options={{
-          tabBarLabel: "Trang chủ", // 👈 Sửa từ 'title' thành 'tabBarLabel'
+          tabBarLabel: "Trang chủ",
         }}
       />
       <Tabs.Screen
         name="groups"
         options={{
-          tabBarLabel: "Nhóm", // 👈 Sửa từ 'title' thành 'tabBarLabel'
+          tabBarLabel: "Nhóm",
         }}
       />
+      
+      {/* 👇 THÊM MÀN HÌNH CÔNG NỢ VÀO GIỮA */}
+      <Tabs.Screen
+        name="debts"
+        options={{
+          tabBarLabel: "Công nợ",
+        }}
+      />
+
       <Tabs.Screen
         name="notification"
         options={{
-          tabBarLabel: "Thông báo", // 👈 Sửa từ 'title' thành 'tabBarLabel'
+          tabBarLabel: "Thông báo",
         }}
       />
       <Tabs.Screen
         name="account"
         options={{
-          tabBarLabel: "Tài khoản", // 👈 Sửa từ 'title' thành 'tabBarLabel'
+          tabBarLabel: "Tài khoản",
         }}
       />
     </Tabs>

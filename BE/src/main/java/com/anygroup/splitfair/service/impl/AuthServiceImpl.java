@@ -52,6 +52,7 @@ public class AuthServiceImpl implements AuthService {
         res.setRole(user.getRole().getName().name());
         res.setUserId(user.getId()); // 👈 set userId in AuthResponse
         res.setEmail(user.getEmail()); // 👈 set email in AuthResponse
+        res.setAvatar(user.getAvatar());
         return res;
     }
 
@@ -76,6 +77,7 @@ public class AuthServiceImpl implements AuthService {
         res.setRole(user.getRole().getName().name());
         res.setUserId(user.getId()); // 👈 set userId in AuthResponse
         res.setEmail(user.getEmail()); // 👈 set email in AuthResponse
+        res.setAvatar(user.getAvatar());
         return res;
     }
 
@@ -89,6 +91,7 @@ public class AuthServiceImpl implements AuthService {
         res.setRole(user.getRole().getName().name());
         res.setUserId(user.getId());
         res.setEmail(user.getEmail());
+        res.setAvatar(user.getAvatar());
         // Không set token, vì đây là hàm lấy thông tin, không phải tạo token mới
         return res;
     }

@@ -7,5 +7,5 @@ export interface User {
   email: string;
   status: UserStatus;
   roleId: string; // UUID -> string
-  avatarUrl?: string;
+  avatar?: string; // Match backend DTO 'avatar'
 }

@@ -1,6 +1,7 @@
 // src/component/Avatar.tsx
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, Image } from 'react-native';
+import { getURLBaseBackend } from '@/utils/api';
 
 const COLORS = [
   '#F44336', '#E91E63', '#9C27B0', '#673AB7', '#3F51B5',
@@ -33,12 +34,40 @@ const getInitials = (name: string) => {
 
 interface AvatarProps {
   name: string;
+  avatar?: string | null; // Thêm prop avatar
   size?: number;
   style?: any;
 }
 
-const Avatar = ({ name, size = 40, style }: AvatarProps) => {
-  // Luôn render View để giữ layout, nếu không có tên thì hiển thị ?
+const Avatar = ({ name, avatar, size = 40, style }: AvatarProps) => {
+  const [imageError, setImageError] = useState(false);
+  const backendUrl = getURLBaseBackend();
+
+  // Logic xử lý URL avatar
+  const getAvatarUrl = (path: string) => {
+    if (!path) return null;
+    if (path.startsWith('http')) return path;
+    return `${backendUrl}${path}`;
+  };
+
+  const avatarUrl = getAvatarUrl(avatar || '');
+
+  // Nếu có avatar và không bị lỗi load ảnh -> Render Ảnh
+  if (avatarUrl && !imageError) {
+    return (
+      <Image
+        source={{ uri: avatarUrl }}
+        style={[
+          styles.image, 
+          { width: size, height: size, borderRadius: size / 2 }, 
+          style
+        ]}
+        onError={() => setImageError(true)}
+      />
+    );
+  }
+
+  // Fallback: Render Initials
   const displayName = name || '?';
   const initials = getInitials(displayName);
   const color = getColor(displayName);
@@ -60,6 +89,10 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
   },
+  image: {
+    marginRight: 15,
+    backgroundColor: '#eee', // Màu nền khi đang load
+  }
 });
 
 export default Avatar;

@@ -14,26 +14,9 @@ import { APP_COLOR } from '@/utils/constant';
 import { Expense } from '@/types/expense.types';
 import { useGetExpensesByGroup } from '@/api/hooks';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import Avatar from '@/component/Avatar';
 
 import { useGetGroupMembers } from '@/api/hooks'; // 👈 Import hook members
-
-const Avatar = ({ name }: { name: string }) => (
-  <View
-    style={{
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      backgroundColor: APP_COLOR.ORANGE,
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginRight: 10,
-    }}
-  >
-    <Text style={{ color: 'white', fontWeight: 'bold' }}>
-      {name.charAt(0).toUpperCase()}
-    </Text>
-  </View>
-);
 
 const GroupExpensesTab = ({ route }: any) => {
   const { groupId } = route.params;
@@ -48,6 +31,11 @@ const GroupExpensesTab = ({ route }: any) => {
   const getPayerName = (paidByUuid: string) => {
     const member = members?.find((m) => getMemberId(m) === paidByUuid);
     return member ? getMemberName(member) : 'Không rõ';
+  };
+
+  const getPayerAvatar = (paidByUuid: string) => {
+    const member = members?.find((m) => getMemberId(m) === paidByUuid);
+    return member?.user?.avatar;
   };
 
   if (isLoadingExpenses || isLoadingMembers) {
@@ -74,7 +62,7 @@ const GroupExpensesTab = ({ route }: any) => {
         })
         }
       >
-        <Avatar name={payerName} />
+        <Avatar name={payerName} avatar={getPayerAvatar(item.paidBy)} />
         <View style={styles.itemContent}>
           <Text style={styles.itemName}>{item.description}</Text>
           <Text style={styles.itemMeta}>

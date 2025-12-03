@@ -18,12 +18,127 @@ import {
   useDeleteExpense,
   useDeleteBill,
   useGetGroupMembers,
+  useGetSharesByExpense,
 } from '@/api/hooks';
-import { Expense } from '@/types/expense.types';
+import { Expense, ExpenseShare } from '@/types/expense.types';
 import { useToast } from '@/context/toast.context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Swipeable } from 'react-native-gesture-handler';
 import ConfirmModal from '@/component/ConfirmModal';
+import Avatar from '@/component/Avatar';
+
+const ExpenseItem = ({ 
+  item, 
+  members, 
+  onDelete 
+}: { 
+  item: Expense; 
+  members: any[]; 
+  onDelete: (id: string) => void;
+}) => {
+  const [isExpanded, setIsExpanded] = React.useState(false);
+  const { data: shares, isLoading: isLoadingShares } = useGetSharesByExpense(item.id, isExpanded);
+
+  const getMemberName = (id: string) => {
+    const m = members?.find((m) => (m.userId || m.user?.id) === id);
+    return m ? (m.userName || m.user?.userName) : 'Thành viên';
+  };
+  
+  const getMemberAvatar = (id: string) => {
+    const m = members?.find((m) => (m.userId || m.user?.id) === id);
+    return m ? (m.avatar || m.user?.avatar) : null;
+  };
+
+  const payerName = getMemberName(item.paidBy);
+  const payerAvatar = getMemberAvatar(item.paidBy);
+
+  const renderRightActions = () => {
+    return (
+      <TouchableOpacity
+        style={styles.deleteAction}
+        onPress={() => onDelete(item.id)}
+      >
+        <Ionicons name="trash" size={24} color="white" />
+        <Text style={styles.deleteText}>Xóa</Text>
+      </TouchableOpacity>
+    );
+  };
+
+  return (
+    <View style={styles.rowWrapper}>
+      <Swipeable
+        renderRightActions={renderRightActions}
+        overshootRight={false}
+        containerStyle={styles.swipeContainer}
+      >
+        <View style={styles.itemContainerWrapper}> 
+            <TouchableOpacity
+                style={styles.itemContainer}
+                activeOpacity={0.9}
+                onPress={() => setIsExpanded(!isExpanded)}
+            >
+                <View style={styles.iconBox}>
+                   <Avatar name={payerName} avatar={payerAvatar} size={40} />
+                </View>
+
+                <View style={styles.itemContent}>
+                <Text style={styles.itemName} numberOfLines={1}>{item.description}</Text>
+                <Text style={styles.itemSubText}>
+                    <Text style={{fontWeight: 'bold'}}>{payerName}</Text> đã trả
+                </Text>
+                </View>
+
+                <View style={styles.itemAmountBox}>
+                <Text style={styles.itemAmount}>{item.amount.toLocaleString('vi-VN')} ₫</Text>
+                <Ionicons 
+                    name={isExpanded ? "chevron-down" : "chevron-forward"} 
+                    size={16} 
+                    color="#ccc" 
+                />
+                </View>
+            </TouchableOpacity>
+
+            {isExpanded && (
+                <View style={styles.expandedContent}>
+                    <View style={styles.divider} />
+                    {isLoadingShares ? (
+                        <ActivityIndicator size="small" color={APP_COLOR.ORANGE} style={{marginVertical: 10}} />
+                    ) : (
+                        <View>
+                            <Text style={styles.shareTitle}>Chi tiết chia tiền:</Text>
+                            {shares?.map((share: ExpenseShare) => {
+                                const shareName = getMemberName(share.userId);
+                                const shareAvatar = getMemberAvatar(share.userId);
+                                return (
+                                    <View key={share.id} style={styles.shareRow}>
+                                        <View style={styles.shareUser}>
+                                            <Avatar name={shareName} avatar={shareAvatar} size={24} />
+                                            <Text style={styles.shareName}>{shareName}</Text>
+                                        </View>
+                                        <Text style={styles.shareAmount}>
+                                            {share.shareAmount.toLocaleString('vi-VN')} ₫
+                                        </Text>
+                                    </View>
+                                );
+                            })}
+                            <TouchableOpacity 
+                                style={styles.detailButton}
+                                onPress={() => router.push({
+                                    pathname: '/(tabs)/groups/expense/[expenseId]',
+                                    params: { expenseId: item.id },
+                                })}
+                            >
+                                <Text style={styles.detailButtonText}>Xem chi tiết đầy đủ</Text>
+                            </TouchableOpacity>
+                        </View>
+                    )}
+                </View>
+            )}
+        </View>
+      </Swipeable>
+    </View>
+  );
+};
 
 const BillDetailScreen = () => {
   const { billId } = useLocalSearchParams<{ billId: string }>();
@@ -112,60 +227,7 @@ const BillDetailScreen = () => {
     return <View style={styles.center}><Text>Không tìm thấy hóa đơn.</Text></View>;
   }
 
-  // 👇 1. NÚT XÓA (Cập nhật style)
-  const renderRightActions = (expenseId: string) => {
-    return (
-      <TouchableOpacity
-        style={styles.deleteAction} // Style mới
-        onPress={() => handleDeleteExpense(expenseId)}
-      >
-        <Ionicons name="trash" size={24} color="white" />
-        <Text style={styles.deleteText}>Xóa</Text>
-      </TouchableOpacity>
-    );
-  };
-
-  const renderExpenseItem = ({ item }: { item: Expense }) => {
-    const payerName = getPayerName(item.paidBy);
-    return (
-      // 👇 2. WRAPPER (Bọc ngoài để tạo khoảng cách giữa các dòng)
-      <View style={styles.rowWrapper}>
-        <Swipeable
-          renderRightActions={() => renderRightActions(item.id)}
-          overshootRight={false}
-          containerStyle={styles.swipeContainer} // Style container
-        >
-          <TouchableOpacity
-            style={styles.itemContainer}
-            activeOpacity={0.9}
-            onPress={() =>
-              router.push({
-                pathname: '/(tabs)/groups/expense/[expenseId]',
-                params: { expenseId: item.id },
-              })
-            }
-          >
-            {/* Icon */}
-            <View style={styles.iconBox}>
-               <Ionicons name="receipt" size={24} color={APP_COLOR.ORANGE} />
-            </View>
-
-            {/* Nội dung */}
-            <View style={styles.itemContent}>
-              <Text style={styles.itemName} numberOfLines={1}>{item.description}</Text>
-              <Text style={styles.itemSubText}>{payerName} đã trả</Text>
-            </View>
-
-            {/* Số tiền */}
-            <View style={styles.itemAmountBox}>
-              <Text style={styles.itemAmount}>{item.amount.toLocaleString('vi-VN')} ₫</Text>
-              <Ionicons name="chevron-forward" size={16} color="#ccc" />
-            </View>
-          </TouchableOpacity>
-        </Swipeable>
-      </View>
-    );
-  };
+  // 👇 1. NÚT XÓA (Cập nhật style) - Moved to ExpenseItem component
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
@@ -205,7 +267,13 @@ const BillDetailScreen = () => {
 
         <FlatList
           data={expenses || []}
-          renderItem={renderExpenseItem}
+          renderItem={({ item }) => (
+            <ExpenseItem 
+              item={item} 
+              members={members || []} 
+              onDelete={handleDeleteExpense} 
+            />
+          )}
           keyExtractor={(item) => item.id}
           contentContainerStyle={{ paddingBottom: 80 }}
           ListEmptyComponent={
@@ -309,7 +377,56 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 15,
     // Không set margin/radius ở đây, swipeContainer sẽ lo
-    height: 80, // ✅ Đặt chiều cao cố định tối thiểu để đều nhau
+    minHeight: 80, // ✅ Đặt chiều cao cố định tối thiểu để đều nhau
+  },
+  itemContainerWrapper: {
+    backgroundColor: 'white',
+  },
+  expandedContent: {
+    paddingHorizontal: 15,
+    paddingBottom: 15,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#f0f0f0',
+    marginBottom: 10,
+  },
+  shareTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#888',
+    marginBottom: 8,
+    textTransform: 'uppercase',
+  },
+  shareRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  shareUser: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  shareName: {
+    fontSize: 14,
+    color: '#333',
+  },
+  shareAmount: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
+  },
+  detailButton: {
+    marginTop: 10,
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  detailButtonText: {
+    color: APP_COLOR.ORANGE,
+    fontSize: 14,
+    fontWeight: '600',
   },
   iconBox: {
     width: 44, height: 44, borderRadius: 22,

@@ -12,4 +12,5 @@ public class AuthResponse {
     // thêm userId vào AuthResponse
     private UUID userId;
     private String email;
+    private String avatar;
 }

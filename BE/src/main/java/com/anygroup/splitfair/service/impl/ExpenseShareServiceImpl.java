@@ -3,11 +3,13 @@ package com.anygroup.splitfair.service.impl;
 import com.anygroup.splitfair.dto.ExpenseShareDTO;
 import com.anygroup.splitfair.dto.ExpenseShareSaveRequest;
 import com.anygroup.splitfair.enums.DebtStatus;
+import com.anygroup.splitfair.enums.NotificationType;
 import com.anygroup.splitfair.enums.ShareStatus;
 import com.anygroup.splitfair.mapper.ExpenseShareMapper;
 import com.anygroup.splitfair.model.*;
 import com.anygroup.splitfair.repository.*;
 import com.anygroup.splitfair.service.ExpenseShareService;
+import com.anygroup.splitfair.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +30,7 @@ public class ExpenseShareServiceImpl implements ExpenseShareService {
     private final UserRepository userRepository;
     private final DebtRepository debtRepository;
     private final ExpenseShareMapper expenseShareMapper;
+    private final NotificationService notificationService; // Inject NotificationService
 
 
     //Tạo phần chia chi phí riêng lẻ
@@ -137,19 +140,22 @@ public class ExpenseShareServiceImpl implements ExpenseShareService {
         Expense expense = expenseRepository.findById(request.getExpenseId())
                 .orElseThrow(() -> new RuntimeException("Expense not found with id: " + request.getExpenseId()));
 
+        // 1. Xóa dữ liệu cũ (Shares & Debts) để tránh trùng lặp
+        expense.getShares().clear();
+        expense.getDebts().clear();
+
         for (ExpenseShareSaveRequest.ShareInput input : request.getShares()) {
             User user = userRepository.findById(input.getUserId())
                     .orElseThrow(() -> new RuntimeException("User not found with id: " + input.getUserId()));
 
+            // 2. Tạo Share mới
             ExpenseShare share = new ExpenseShare();
             share.setExpense(expense);
             share.setUser(user);
             
-            // --- 👇 SỬA LỖI LOGIC Ở ĐÂY ---
-            BigDecimal shareAmount = input.getShareAmount(); // Lấy 200đ
-            BigDecimal totalAmount = request.getTotalAmount(); // Lấy 600đ
+            BigDecimal shareAmount = input.getShareAmount();
+            BigDecimal totalAmount = request.getTotalAmount();
             
-            // Tính toán % (vẫn cần cho Pie Chart, nhưng ta sẽ xử lý làm tròn)
             BigDecimal percentage;
             if (totalAmount.compareTo(BigDecimal.ZERO) == 0) {
                 percentage = BigDecimal.ZERO;
@@ -158,21 +164,43 @@ public class ExpenseShareServiceImpl implements ExpenseShareService {
                                         .divide(totalAmount, 2, RoundingMode.HALF_UP);
             }
             
-            share.setPercentage(percentage); // Lưu % (33.33)
-            share.setShareAmount(shareAmount); // 👈 LƯU SỐ TIỀN GỐC (200)
-
+            share.setPercentage(percentage);
+            share.setShareAmount(shareAmount);
             share.setStatus(ShareStatus.UNPAID);
-            expenseShareRepository.save(share);
             
-            // Logic tạo Debt (đã đúng)
+            // Thêm vào list của Expense (thay vì save trực tiếp)
+            expense.getShares().add(share);
+            
+            // 3. Tạo Debt mới
             if (!user.getId().equals(expense.getPaidBy().getId())) {
                 Debt debt = new Debt();
-                // ...
-                debt.setAmount(input.getShareAmount()); // Dùng 200
-                // ...
-                debtRepository.save(debt);
+                debt.setExpense(expense);
+                debt.setAmountFrom(user);
+                debt.setAmountTo(expense.getPaidBy());
+                debt.setAmount(input.getShareAmount());
+                debt.setStatus(DebtStatus.UNSETTLED);
+                
+                // Thêm vào list của Expense
+                expense.getDebts().add(debt);
+
+                // Lấy tên nhóm
+                String groupName = "";
+                if (expense.getBill() != null && expense.getBill().getGroup() != null) {
+                    groupName = " trong " + expense.getBill().getGroup().getGroupName();
+                }
+
+                // Gửi thông báo cho người nợ
+                notificationService.createNotification(
+                        user.getId(),
+                        "Chi tiêu mới",
+                        "Bạn đã được chia " + input.getShareAmount() + "đ" + groupName,
+                        NotificationType.EXPENSE_ADDED,
+                        expense.getId().toString()
+                );
             }
         }
-        // (Xóa logic làm tròn % của người cuối cùng đi, nó không cần thiết nếu ta dùng shareAmount)
+        
+        // 4. Lưu Expense (Cascade sẽ lưu Shares và Debts mới, đồng thời xóa cái cũ do orphanRemoval=true)
+        expenseRepository.save(expense);
     }
 }

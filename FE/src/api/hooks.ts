@@ -8,10 +8,11 @@ import { Alert } from 'react-native';
 // 1. IMPORT CÁC TYPES ĐÃ ĐỒNG NHẤT
 import { Group, GroupMember, CreateGroupPayload } from '@/types/group.types';
 import { User } from '@/types/user.types';
-import { Expense, ExpenseShareSaveRequest } from '@/types/expense.types';
+import { Expense, ExpenseShareSaveRequest, ExpenseShare } from '@/types/expense.types';
 import { Bill } from '@/types/bill.types';
 import { Category } from '@/types/category.types';
 import { Balance, PaymentStat } from '@/types/stats.types';
+import { Notification } from '@/types/notification.types';
 import { useCurrentApp } from '@/context/app.context';
 
 // 2. IMPORT CÁC HÀM API ĐÃ ĐỒNG NHẤT
@@ -41,11 +42,17 @@ import {
   updateExpense,
   getSharesByUser,
 } from '@/api/expense';
-import { getReadableBalances } from '@/api/debt';
+import { getAllDebtsByUser, getReadableBalances, markDebtAsSettled } from '@/api/debt';
 import { createBill, getBillsByGroup, getBillById, deleteBill } from '@/api/bills';
 import { getAllCategories } from '@/api/category';
 import { getGroupPaymentStats, getGroupBalances } from '@/api/stats';
-import { ExpenseShare } from '@/types/expense.types';
+import {
+  getMyNotifications,
+  getUnreadCount,
+  markAsRead,
+  markAllAsRead,
+} from '@/api/notifications';
+import { Debt } from '@/types/debt.types';
 
 // --- Auth Hooks (Sử dụng api.ts của splitapp-fe) ---
 interface LoginPayload {
@@ -99,18 +106,17 @@ export const useUpdateUser = () => {
     // Backend của bạn nhận UserDTO (có 'name'), không phải 'userName'
     mutationFn: (payload) => updateUser(payload.id as string, payload),
     
-    onSuccess: (data) => { // 'data' là UserDTO trả về từ BE
+    onSuccess: (data, variables) => { // 'data' là UserDTO trả về từ BE
       // 1. Cập nhật lại AppContext state
       if (appState) {
         setAppState({
           ...appState,
           userName: data.name, // BE trả về 'name'
           email: data.email,
+          // Ưu tiên lấy từ response, nếu không có thì lấy từ payload gửi đi (variables), cuối cùng mới giữ nguyên cũ
+          avatar: data.avatar || variables.avatar || appState.avatar, 
         });
       }
-      // 2. Thông báo thành công
-      Alert.alert('Thành công', 'Đã cập nhật thông tin tài khoản.');
-      
       // 3. Làm mới các query liên quan (ví dụ: danh sách thành viên)
       queryClient.invalidateQueries({ queryKey: ['users'] });
       queryClient.invalidateQueries({ queryKey: ['group', 'members'] }); // Làm mới tất cả cache thành viên
@@ -194,6 +200,19 @@ export const useAddMember = (groupId: string) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['group', groupId, 'members'] });
       queryClient.invalidateQueries({ queryKey: ['group', groupId] });
+    },
+  });
+};
+
+export const useJoinGroup = () => {
+  const queryClient = useQueryClient();
+  return useMutation<string, AxiosError, { groupId: string; userId: string }>({
+    mutationFn: (payload) => addMember(payload.groupId, { userId: payload.userId }),
+    onSuccess: (data, variables) => {
+      // Refresh group list
+      queryClient.invalidateQueries({ queryKey: ['groups'] });
+      // Refresh specific group if needed
+      queryClient.invalidateQueries({ queryKey: ['group', variables.groupId] });
     },
   });
 };
@@ -379,11 +398,11 @@ export const useGetExpenseById = (expenseId: string) => {
 };
 
 // 👇 HOOK MỚI (Lấy các phần chia của chi tiêu)
-export const useGetSharesByExpense = (expenseId: string) => {
+export const useGetSharesByExpense = (expenseId: string, enabled: boolean = true) => {
   return useQuery<ExpenseShare[], AxiosError>({
     queryKey: ['expenseShares', expenseId],
     queryFn: () => getSharesByExpense(expenseId),
-    enabled: !!expenseId,
+    enabled: !!expenseId && enabled,
   });
 };
 
@@ -449,6 +468,66 @@ export const useDeleteGroup = () => {
     mutationFn: (groupId) => deleteGroup(groupId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['groups'] });
+    },
+  });
+};
+
+// --- Notification Hooks ---
+export const useGetNotifications = () => {
+  return useQuery<Notification[], AxiosError>({
+    queryKey: ['notifications'],
+    queryFn: getMyNotifications,
+    refetchInterval: 30000, // Tự động refresh mỗi 30s
+  });
+};
+
+export const useGetUnreadCount = () => {
+  return useQuery<number, AxiosError>({
+    queryKey: ['notifications', 'unread'],
+    queryFn: getUnreadCount,
+    refetchInterval: 30000,
+  });
+};
+
+export const useMarkAsRead = () => {
+  const queryClient = useQueryClient();
+  return useMutation<void, AxiosError, string>({
+    mutationFn: (id) => markAsRead(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications', 'unread'] });
+    },
+  });
+};
+
+export const useMarkAllAsRead = () => {
+  const queryClient = useQueryClient();
+  return useMutation<void, AxiosError>({
+    mutationFn: markAllAsRead,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications', 'unread'] });
+    },
+  });
+};
+
+export const useGetAllDebtsByUser = (userId: string) => {
+  return useQuery<Debt[], AxiosError>({
+    queryKey: ['debts', 'all', userId],
+    queryFn: () => getAllDebtsByUser(userId),
+    enabled: !!userId,
+  });
+};
+
+// 👇 THÊM MỚI: Hook xác nhận trả nợ
+export const useSettleDebt = () => {
+  const queryClient = useQueryClient();
+  return useMutation<Debt, AxiosError, string>({
+    mutationFn: (debtId) => markDebtAsSettled(debtId),
+    onSuccess: (data) => {
+      // Làm mới danh sách nợ sau khi update thành công
+      queryClient.invalidateQueries({ queryKey: ['debts'] });
+      queryClient.invalidateQueries({ queryKey: ['stats'] }); 
     },
   });
 };

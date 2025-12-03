@@ -50,11 +50,7 @@ const HomeTab = () => {
             <Text style={styles.userName}>{appState?.userName || 'Bạn mới'}</Text>
           </View>
           <TouchableOpacity onPress={() => router.push('/(tabs)/account')}>
-             {appState?.avatar ? (
-                <Image source={{ uri: appState.avatar }} style={styles.avatar} />
-             ) : (
-                <Avatar name={appState?.userName || 'User'} size={45} />
-             )}
+             <Avatar name={appState?.userName || 'User'} avatar={appState?.avatar} size={45} />
           </TouchableOpacity>
         </View>
 

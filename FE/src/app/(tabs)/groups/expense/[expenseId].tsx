@@ -22,6 +22,7 @@ import { APP_COLOR } from '@/utils/constant';
 import { ExpenseShare } from '@/types/expense.types';
 import Avatar from '@/component/Avatar';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import ConfirmModal from '@/component/ConfirmModal';
 
 const ExpenseDetailScreen = () => {
   const { expenseId } = useLocalSearchParams<{ expenseId: string }>();
@@ -44,28 +45,39 @@ const ExpenseDetailScreen = () => {
     expense?.billId || ''
   );
 
+  const [confirmModal, setConfirmModal] = React.useState<{
+    visible: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    type: 'danger' | 'info' | 'warning';
+    confirmText?: string;
+  }>({
+    visible: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+    type: 'info',
+  });
+
   const handleDelete = () => {
-    Alert.alert(
-      "Xác nhận xóa",
-      "Bạn có chắc chắn muốn xóa khoản chi tiêu này không? Hành động này sẽ hoàn tác các thay đổi về số dư nợ.",
-      [
-        { text: "Hủy", style: "cancel" },
-        {
-          text: "Xóa",
-          style: "destructive",
-          onPress: () => {
-            deleteExpense(expenseId as string, {
-              onSuccess: () => {
-                router.back();
-              },
-              onError: () => {
-                Alert.alert("Lỗi", "Không thể xóa chi tiêu.");
-              }
-            });
+    setConfirmModal({
+      visible: true,
+      title: "Xác nhận xóa",
+      message: "Bạn có chắc chắn muốn xóa khoản chi tiêu này không? Hành động này sẽ hoàn tác các thay đổi về số dư nợ.",
+      type: 'danger',
+      confirmText: "Xóa",
+      onConfirm: () => {
+        deleteExpense(expenseId as string, {
+          onSuccess: () => {
+            router.back();
           },
-        },
-      ]
-    );
+          onError: () => {
+            Alert.alert("Lỗi", "Không thể xóa chi tiêu.");
+          }
+        });
+      },
+    });
   };
 
   if (isLoadingExpense || isLoadingShares || isLoadingMembers) {
@@ -89,6 +101,11 @@ const ExpenseDetailScreen = () => {
     return member?.userName || member?.user?.userName || 'Thành viên';
   };
 
+  const getUserAvatar = (userId: string) => {
+    const member = members?.find((m) => m.userId === userId || m.user?.id === userId);
+    return member?.user?.avatar;
+  };
+
   const payerName = getUserName(expense.paidBy);
   const totalAmount = expense.amount;
   const dateStr = new Date(expense.createdTime).toLocaleDateString('vi-VN');
@@ -100,7 +117,7 @@ const ExpenseDetailScreen = () => {
 
     return (
       <View style={styles.itemContainer}>
-        <Avatar name={userName} />
+        <Avatar name={userName} avatar={getUserAvatar(item.userId)} />
         
         <View style={styles.itemContent}>
           <Text style={styles.itemName}>{userName}</Text>
@@ -192,6 +209,16 @@ const ExpenseDetailScreen = () => {
           showsVerticalScrollIndicator={false}
         />
       </View>
+
+      <ConfirmModal
+        visible={confirmModal.visible}
+        onClose={() => setConfirmModal(prev => ({ ...prev, visible: false }))}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        type={confirmModal.type}
+        confirmText={confirmModal.confirmText}
+      />
     </SafeAreaView>
   );
 };

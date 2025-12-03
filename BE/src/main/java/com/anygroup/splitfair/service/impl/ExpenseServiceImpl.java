@@ -9,6 +9,8 @@ import com.anygroup.splitfair.enums.ShareStatus;
 import com.anygroup.splitfair.model.*;
 import com.anygroup.splitfair.repository.*;
 import com.anygroup.splitfair.service.ExpenseService;
+import com.anygroup.splitfair.enums.NotificationType;
+import com.anygroup.splitfair.service.NotificationService;
 import com.anygroup.splitfair.mapper.ExpenseMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -31,8 +33,8 @@ public class ExpenseServiceImpl implements ExpenseService {
     private final UserRepository userRepository;
     private final DebtRepository debtRepository;
     private final ExpenseMapper expenseMapper;
-
     private final ExpenseShareRepository expenseShareRepository;
+    private final NotificationService notificationService; // Inject NotificationService
 
       //Tạo mới Expense (chưa chia shares)
     @Override
@@ -78,6 +80,17 @@ public class ExpenseServiceImpl implements ExpenseService {
 
         //  Lưu vào DB
         expense = expenseRepository.save(expense);
+
+        // Gửi thông báo cho người trả tiền (nếu khác người tạo)
+        if (expense.getPaidBy() != null && !expense.getPaidBy().getId().equals(expense.getCreatedBy().getId())) {
+            notificationService.createNotification(
+                    expense.getPaidBy().getId(),
+                    "Chi tiêu mới",
+                    "Bạn được đánh dấu đã trả " + expense.getAmount() + " cho " + expense.getDescription(),
+                    NotificationType.EXPENSE_ADDED,
+                    expense.getId().toString()
+            );
+        }
 
         //
         if (bill != null) {
@@ -155,40 +168,58 @@ public class ExpenseServiceImpl implements ExpenseService {
     @Override
     @Transactional
     public ExpenseDTO updateExpense(UUID id, ExpenseDTO dto) {
-        // ... (Cập nhật Expense, Cập nhật Tổng Bill... giữ nguyên) ...
         Expense expense = expenseRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Expense not found with id: " + id));
 
-        // 4. TÍNH TOÁN LẠI NỢ
-        debtRepository.deleteByExpense_Id(id);
+        // 1. Cập nhật thông tin Expense
+        BigDecimal oldAmount = expense.getAmount();
+        if (dto.getAmount() != null) expense.setAmount(dto.getAmount());
+        if (dto.getDescription() != null) expense.setDescription(dto.getDescription());
+        if (dto.getPaidBy() != null) {
+            User payer = userRepository.findById(dto.getPaidBy())
+                    .orElseThrow(() -> new RuntimeException("User not found with id: " + dto.getPaidBy()));
+            expense.setPaidBy(payer);
+        }
+
+        // 2. Cập nhật Bill Total
+        Bill bill = expense.getBill();
+        if (bill != null && dto.getAmount() != null) {
+            // Trừ số tiền cũ, cộng số tiền mới
+            bill.setTotalAmount(bill.getTotalAmount().subtract(oldAmount).add(dto.getAmount()));
+            billRepository.save(bill);
+        }
+
+        // 3. TÍNH TOÁN LẠI NỢ
+        // Xóa nợ cũ bằng cách clear list (kích hoạt orphanRemoval = true)
+        expense.getDebts().clear();
+        
         List<ExpenseShare> shares = expenseShareRepository.findByExpense(expense);
         
         for (ExpenseShare share : shares) {
             if (!share.getUser().getId().equals(expense.getPaidBy().getId())) {
                 
-                // --- 👇 SỬA LỖI LOGIC Ở ĐÂY ---
-                // (XÓA) Dòng code tính % cũ:
-                // BigDecimal shareAmount = expense.getAmount()...
-                
-                // (THÊM) Đọc trực tiếp số tiền đã chia (200đ)
                 BigDecimal shareAmount = share.getShareAmount();
-                // (Nếu shareAmount là null, thì mới tính lại theo % - để tương thích dữ liệu cũ)
+                // Nếu shareAmount là null, tính lại theo % (dùng amount MỚI của expense)
                 if (shareAmount == null) {
                     shareAmount = expense.getAmount() 
                         .multiply(share.getPercentage())
                         .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
                 }
-                // --- HẾT SỬA LỖI ---
 
                 Debt debt = new Debt();
                 debt.setExpense(expense);
                 debt.setAmountFrom(share.getUser());
                 debt.setAmountTo(expense.getPaidBy());
-                debt.setAmount(shareAmount); // 👈 Đã dùng số tiền đúng
+                debt.setAmount(shareAmount);
                 debt.setStatus(share.getStatus() == ShareStatus.PAID ? DebtStatus.SETTLED : DebtStatus.UNSETTLED);
-                debtRepository.save(debt);
+                
+                // Thêm vào list debts của expense
+                expense.getDebts().add(debt);
             }
         }
+        
+        // Lưu expense (sẽ cascade lưu debts mới và xóa debts cũ)
+        expenseRepository.save(expense);
         
         return expenseMapper.toDTO(expense);
     }

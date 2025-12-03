@@ -17,6 +17,7 @@ import {
   useGetGroupPaymentStats,
   useGetExpensesByGroup,
   useGetSharesByUser,
+  useGetGroupMembers, // Import thêm
 } from '@/api/hooks';
 import { APP_COLOR } from '@/utils/constant';
 import Avatar from '@/component/Avatar';
@@ -36,6 +37,7 @@ const MemberDetailScreen = () => {
   const { data: stats, isLoading: l2 } = useGetGroupPaymentStats(groupId);
   const { data: groupExpenses, isLoading: l3 } = useGetExpensesByGroup(groupId);
   const { data: allUserShares, isLoading: l4 } = useGetSharesByUser(userId);
+  const { data: members } = useGetGroupMembers(groupId); // Lấy danh sách thành viên để lấy avatar
 
   if (l1 || l2 || l3 || l4) {
     return (
@@ -47,6 +49,10 @@ const MemberDetailScreen = () => {
 
   // --- Tính toán số liệu ---
   
+  // Lấy avatar
+  const member = members?.find(m => m.userId === userId || m.user?.id === userId);
+  const avatar = member?.user?.avatar;
+
   // 1. Số dư (Balance)
   const userBalance = balances?.find((b) => b.userId === userId);
   const balanceAmount = userBalance ? parseFloat(userBalance.netAmount) : 0;
@@ -83,7 +89,7 @@ const MemberDetailScreen = () => {
         {/* --- 1. Profile Card --- */}
         <View style={styles.profileCard}>
             <View style={styles.avatarWrapper}>
-                <Avatar name={userName as string} size={80} /> 
+                <Avatar name={userName as string} avatar={avatar} size={80} /> 
             </View>
             <Text style={styles.userName}>{userName}</Text>
             <Text style={styles.userRole}>Thành viên nhóm</Text>

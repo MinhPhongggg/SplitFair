@@ -3,10 +3,12 @@ package com.anygroup.splitfair.service.impl;
 import com.anygroup.splitfair.dto.BalanceDTO;
 import com.anygroup.splitfair.dto.DebtDTO;
 import com.anygroup.splitfair.enums.DebtStatus;
+import com.anygroup.splitfair.enums.NotificationType;
 import com.anygroup.splitfair.mapper.DebtMapper;
 import com.anygroup.splitfair.model.*;
 import com.anygroup.splitfair.repository.*;
 import com.anygroup.splitfair.service.DebtService;
+import com.anygroup.splitfair.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +28,7 @@ public class DebtServiceImpl implements DebtService {
     private final ExpenseShareRepository expenseShareRepository;
     private final ExpenseRepository expenseRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService; // Inject NotificationService
 
 
     @Override
@@ -81,6 +84,25 @@ public class DebtServiceImpl implements DebtService {
                 .orElseThrow(() -> new RuntimeException("Debt not found with id: " + id));
         debt.setStatus(DebtStatus.SETTLED);
         debtRepository.save(debt);
+
+        // Gửi thông báo cho người được trả (Chủ nợ)
+        // Người trả (debt.getAmountFrom()) -> trả cho -> Chủ nợ (debt.getAmountTo())
+        User payer = debt.getAmountFrom();
+        User creditor = debt.getAmountTo();
+        
+        String groupName = "";
+        if (debt.getExpense() != null && debt.getExpense().getBill() != null && debt.getExpense().getBill().getGroup() != null) {
+             groupName = " trong " + debt.getExpense().getBill().getGroup().getGroupName();
+        }
+
+        notificationService.createNotification(
+                creditor.getId(),
+                "Thanh toán nợ",
+                payer.getUserName() + " đã thanh toán " + debt.getAmount() + "đ" + groupName,
+                NotificationType.DEBT_SETTLED,
+                debt.getExpense().getId().toString()
+        );
+
         return debtMapper.toDTO(debt);
     }
 
