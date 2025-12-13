@@ -397,7 +397,7 @@ export const useGetExpenseById = (expenseId: string) => {
   });
 };
 
-// 👇 HOOK MỚI (Lấy các phần chia của chi tiêu)
+//  HOOK MỚI (Lấy các phần chia của chi tiêu)
 export const useGetSharesByExpense = (expenseId: string, enabled: boolean = true) => {
   return useQuery<ExpenseShare[], AxiosError>({
     queryKey: ['expenseShares', expenseId],

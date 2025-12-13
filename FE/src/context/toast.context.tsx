@@ -1,7 +1,7 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
-import { View, StyleSheet } from 'react-native';
-import ToastMessage, { ToastType } from '@/component/ToastMessage';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import React, { createContext, useContext, useState, useCallback } from "react";
+import { View, StyleSheet } from "react-native";
+import ToastMessage, { ToastType } from "@/component/ToastMessage";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface ToastData {
   id: string;
@@ -12,7 +12,12 @@ interface ToastData {
 }
 
 interface ToastContextType {
-  showToast: (type: ToastType, title: string, message: string, duration?: number) => void;
+  showToast: (
+    type: ToastType,
+    title: string,
+    message: string,
+    duration?: number
+  ) => void;
   hideToast: (id: string) => void;
 }
 
@@ -26,29 +31,31 @@ export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
     setToasts((prev) => prev.filter((toast) => toast.id !== id));
   }, []);
 
-  const showToast = useCallback((type: ToastType, title: string, message: string, duration = 3000) => {
-    const id = Math.random().toString(36).substr(2, 9);
-    const newToast = { id, type, title, message, duration };
-    
-    setToasts((prev) => [...prev, newToast]);
+  const showToast = useCallback(
+    (type: ToastType, title: string, message: string, duration = 3000) => {
+      const id = Math.random().toString(36).substr(2, 9);
+      const newToast = { id, type, title, message, duration };
 
-    if (duration > 0) {
-      setTimeout(() => {
-        hideToast(id);
-      }, duration);
-    }
-  }, [hideToast]);
+      setToasts((prev) => [...prev, newToast]);
+
+      if (duration > 0) {
+        setTimeout(() => {
+          hideToast(id);
+        }, duration);
+      }
+    },
+    [hideToast]
+  );
 
   return (
     <ToastContext.Provider value={{ showToast, hideToast }}>
       {children}
-      <View style={[styles.toastContainer, { top: insets.top + 10 }]} pointerEvents="box-none">
+      <View
+        style={[styles.toastContainer, { top: insets.top + 10 }]}
+        pointerEvents="box-none"
+      >
         {toasts.map((toast) => (
-          <ToastMessage
-            key={toast.id}
-            {...toast}
-            onClose={hideToast}
-          />
+          <ToastMessage key={toast.id} {...toast} onClose={hideToast} />
         ))}
       </View>
     </ToastContext.Provider>
@@ -57,10 +64,10 @@ export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
 
 const styles = StyleSheet.create({
   toastContainer: {
-    position: 'absolute',
+    position: "absolute",
     left: 0,
     right: 0,
-    alignItems: 'center',
+    alignItems: "center",
     zIndex: 9999,
   },
 });
@@ -68,7 +75,7 @@ const styles = StyleSheet.create({
 export const useToast = () => {
   const context = useContext(ToastContext);
   if (!context) {
-    throw new Error('useToast must be used within a ToastProvider');
+    throw new Error("useToast must be used within a ToastProvider");
   }
   return context;
 };

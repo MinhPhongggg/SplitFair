@@ -1,48 +1,72 @@
 // src/app/(tabs)/groups/GroupStatsTab.tsx
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo } from "react";
 import {
-  View, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity,
-  TextInput, KeyboardAvoidingView, Platform, Text
-} from 'react-native';
-import { router } from 'expo-router';
-import { APP_COLOR } from '@/utils/constant';
+  View,
+  StyleSheet,
+  ActivityIndicator,
+  ScrollView,
+  TouchableOpacity,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
+  Text,
+} from "react-native";
+import { router } from "expo-router";
+import { APP_COLOR } from "@/utils/constant";
 import {
-  useGetGroupPaymentStats, useGetGroupBalances, useGetExpensesByGroup,
-  useGetGroupMembers, useCreateExpense, useSaveExpenseShares,
-  useGetBillsByGroup, useCreateBill, useGetCategories
-} from '@/api/hooks';
-import { sendDebtReminder } from '@/api/notifications';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import SkiaPieChart from '@/component/SkiaPieChart';
-import { useCurrentApp } from '@/context/app.context';
-import { useToast } from '@/context/toast.context';
-import { ExpenseShareSaveRequest } from '@/types/expense.types';
-import ConfirmModal from '@/component/ConfirmModal';
+  useGetGroupPaymentStats,
+  useGetGroupBalances,
+  useGetExpensesByGroup,
+  useGetGroupMembers,
+  useCreateExpense,
+  useSaveExpenseShares,
+  useGetBillsByGroup,
+  useCreateBill,
+  useGetCategories,
+} from "@/api/hooks";
+import { sendDebtReminder } from "@/api/notifications";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import SkiaPieChart from "@/component/SkiaPieChart";
+import { useCurrentApp } from "@/context/app.context";
+import { useToast } from "@/context/toast.context";
+import { ExpenseShareSaveRequest } from "@/types/expense.types";
+import ConfirmModal from "@/component/ConfirmModal";
 
 // Import Components
-import { PersonalStatsCard } from '@/component/group/PersonalStatsCard';
-import { BalanceItem } from '@/component/group/BalanceItem';
-import { DebtSuggestionItem } from '@/component/group/DebtSuggestionItem';
-import { ExpenseItem } from '@/component/group/ExpenseItem';
-import { StatsFilterModal } from '@/component/group/StatsFilterModal';
-import { ActionModal } from '@/component/group/ActionModal';
+import { PersonalStatsCard } from "@/component/group/PersonalStatsCard";
+import { BalanceItem } from "@/component/group/BalanceItem";
+import { DebtSuggestionItem } from "@/component/group/DebtSuggestionItem";
+import { ExpenseItem } from "@/component/group/ExpenseItem";
+import { StatsFilterModal } from "@/component/group/StatsFilterModal";
+import { ActionModal } from "@/component/group/ActionModal";
 
-const PIE_COLORS = ['#007AFF', '#FFCC00', '#34C759', '#FF3B30', '#8E8E93'];
-type SortOption = 'DATE_DESC' | 'DATE_ASC' | 'AMOUNT_DESC' | 'AMOUNT_ASC';
+const PIE_COLORS = ["#007AFF", "#FFCC00", "#34C759", "#FF3B30", "#8E8E93"];
+type SortOption = "DATE_DESC" | "DATE_ASC" | "AMOUNT_DESC" | "AMOUNT_ASC";
 
 const GroupStatsTab = ({ route }: any) => {
   const { groupId } = route.params;
   const { appState } = useCurrentApp();
   const { showToast } = useToast();
-  const [activeTab, setActiveTab] = useState<'BALANCES' | 'TRANSACTIONS'>('BALANCES');
+  const [activeTab, setActiveTab] = useState<"BALANCES" | "TRANSACTIONS">(
+    "BALANCES"
+  );
 
   // State
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [filterPayer, setFilterPayer] = useState<string | null>(null);
-  const [sortOption, setSortOption] = useState<SortOption>('DATE_DESC');
-  const [confirmModal, setConfirmModal] = useState({ visible: false, title: '', message: '', onConfirm: () => {}, type: 'info' as any });
-  const [actionModal, setActionModal] = useState({ visible: false, item: null as any });
+  const [sortOption, setSortOption] = useState<SortOption>("DATE_DESC");
+  const [confirmModal, setConfirmModal] = useState({
+    visible: false,
+    title: "",
+    message: "",
+    onConfirm: () => {},
+    type: "info" as any,
+  });
+  const [actionModal, setActionModal] = useState({
+    visible: false,
+    item: null as any,
+  });
 
   // API
   const { data: stats, isLoading: l1 } = useGetGroupPaymentStats(groupId);
@@ -51,24 +75,24 @@ const GroupStatsTab = ({ route }: any) => {
   const { data: members, isLoading: l4 } = useGetGroupMembers(groupId);
   const { data: bills } = useGetBillsByGroup(groupId);
   const { data: categories } = useGetCategories();
-  
+
   const { mutateAsync: createBill } = useCreateBill(groupId);
-  const { mutateAsync: createExpense } = useCreateExpense('');
+  const { mutateAsync: createExpense } = useCreateExpense("");
   const { mutateAsync: saveShares } = useSaveExpenseShares(groupId);
 
   // Handlers
   const handleRemind = async (item: any) => {
     try {
       await sendDebtReminder(
-        String(appState?.userId || ''),
+        String(appState?.userId || ""),
         item.fromId,
         item.amount,
         groupId
       );
-      showToast('success', 'Đã gửi nhắc nợ', `Đã nhắc ${item.from} trả tiền.`);
+      showToast("success", "Đã gửi nhắc nợ", `Đã nhắc ${item.from} trả tiền.`);
       setActionModal({ visible: false, item: null });
     } catch (error) {
-      showToast('error', 'Lỗi', 'Không thể gửi nhắc nợ.');
+      showToast("error", "Lỗi", "Không thể gửi nhắc nợ.");
     }
   };
 
@@ -79,9 +103,9 @@ const GroupStatsTab = ({ route }: any) => {
         groupId,
         description: "Thanh toán nợ",
         totalAmount: item.amount,
-        createdBy: String(appState?.userId || ''),
-        categoryId: categories?.[0]?.id || '',
-        status: 'COMPLETED'
+        createdBy: String(appState?.userId || ""),
+        categoryId: categories?.[0]?.id || "",
+        status: "COMPLETED",
       });
 
       // 2. Tạo Expense
@@ -91,9 +115,9 @@ const GroupStatsTab = ({ route }: any) => {
         description: `Thanh toán nợ từ ${item.from} đến ${item.to}`,
         amount: item.amount,
         paidBy: item.fromId,
-        createdBy: String(appState?.userId || ''),
+        createdBy: String(appState?.userId || ""),
         userId: item.fromId,
-        status: 'COMPLETED'
+        status: "COMPLETED",
       });
 
       // 3. Tạo Share
@@ -101,33 +125,46 @@ const GroupStatsTab = ({ route }: any) => {
         expenseId: newExpense.id,
         totalAmount: item.amount,
         paidBy: item.fromId,
-        currency: 'VND',
-        shares: [{
-          userId: item.toId,
-          shareAmount: item.amount,
-          percentage: 100
-        }]
+        currency: "VND",
+        shares: [
+          {
+            userId: item.toId,
+            shareAmount: item.amount,
+            percentage: 100,
+          },
+        ],
       };
-      
+
       await saveShares(shareRequest);
-      
-      showToast('success', 'Thành công', 'Đã ghi nhận thanh toán.');
+
+      showToast("success", "Thành công", "Đã ghi nhận thanh toán.");
       setActionModal({ visible: false, item: null });
     } catch (error) {
       console.error(error);
-      showToast('error', 'Lỗi', 'Không thể ghi nhận thanh toán.');
+      showToast("error", "Lỗi", "Không thể ghi nhận thanh toán.");
     }
   };
-  
+
   // Helper
-  const getPayerName = (id: string) => members?.find(m => (m.userId || m.user?.id) === id)?.userName || 'Ai đó';
-  const getAvatar = (id: string) => members?.find(m => (m.userId || m.user?.id) === id)?.user?.avatar;
+  const getPayerName = (id: string) =>
+    members?.find((m) => (m.userId || m.user?.id) === id)?.userName || "Ai đó";
+  const getAvatar = (id: string) =>
+    members?.find((m) => (m.userId || m.user?.id) === id)?.user?.avatar;
 
   // --- LOGIC TÍNH TOÁN (Đã sửa thứ tự) ---
-  
+
   // 1. Xác định các khoản chi tiêu thực (loại bỏ thanh toán nợ)
-  const settlementBillIds = useMemo(() => bills?.filter(b => b.description === "Thanh toán nợ").map(b => b.id) || [], [bills]);
-  const realExpenses = useMemo(() => expenses?.filter(e => !settlementBillIds.includes(e.billId)) || [], [expenses, settlementBillIds]);
+  const settlementBillIds = useMemo(
+    () =>
+      bills
+        ?.filter((b) => b.description === "Thanh toán nợ")
+        .map((b) => b.id) || [],
+    [bills]
+  );
+  const realExpenses = useMemo(
+    () => expenses?.filter((e) => !settlementBillIds.includes(e.billId)) || [],
+    [expenses, settlementBillIds]
+  );
 
   // 2. Lọc & Sắp xếp trên danh sách `realExpenses`
   const filteredExpenses = useMemo(() => {
@@ -135,467 +172,353 @@ const GroupStatsTab = ({ route }: any) => {
     let res = [...realExpenses];
 
     // Tìm kiếm
-    if (searchQuery) res = res.filter(e => e.description.toLowerCase().includes(searchQuery.toLowerCase()));
-    
+    if (searchQuery)
+      res = res.filter((e) =>
+        e.description.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+
     // Lọc người trả (Sửa logic so sánh ID)
-    if (filterPayer) res = res.filter(e => e.paidBy === filterPayer);
+    if (filterPayer) res = res.filter((e) => e.paidBy === filterPayer);
 
     // Sắp xếp
     res.sort((a, b) => {
-      if (sortOption === 'DATE_DESC') return new Date(b.createdTime).getTime() - new Date(a.createdTime).getTime();
-      if (sortOption === 'DATE_ASC') return new Date(a.createdTime).getTime() - new Date(b.createdTime).getTime();
-      if (sortOption === 'AMOUNT_DESC') return b.amount - a.amount;
+      if (sortOption === "DATE_DESC")
+        return (
+          new Date(b.createdTime).getTime() - new Date(a.createdTime).getTime()
+        );
+      if (sortOption === "DATE_ASC")
+        return (
+          new Date(a.createdTime).getTime() - new Date(b.createdTime).getTime()
+        );
+      if (sortOption === "AMOUNT_DESC") return b.amount - a.amount;
       return 0;
     });
     return res;
   }, [realExpenses, searchQuery, filterPayer, sortOption]);
 
-<<<<<<< HEAD
-  const handleResetFilter = () => { setFilterPayer(null); setSortOption('DATE_DESC'); setShowFilterModal(false); };
-=======
+  const handleResetFilter = () => {
+    setFilterPayer(null);
+    setSortOption("DATE_DESC");
+    setShowFilterModal(false);
+  };
+
+  // 3. Tính toán thống kê
+  const calculatedStats = useMemo(() => {
+    if (!realExpenses || !members) return [];
+    const map: Record<string, number> = {};
+    realExpenses.forEach((e) => {
+      map[e.paidBy] = (map[e.paidBy] || 0) + e.amount;
+    });
+    return Object.keys(map).map((userId) => {
+      const member = members.find(
+        (m: any) => (m.userId || m.user?.id) === userId
+      );
+      return {
+        userName: member
+          ? member.userName || member.user?.userName || "Thành viên"
+          : "Ai đó",
+        totalAmount: map[userId],
+      };
+    });
+  }, [realExpenses, members]);
+
+  const totalSpent = calculatedStats.reduce((sum, s) => sum + s.totalAmount, 0);
+  const pieData = calculatedStats
+    .map((s, i) => ({
+      key: s.userName,
+      value: s.totalAmount,
+      color: PIE_COLORS[i % PIE_COLORS.length],
+    }))
+    .filter((d) => d.value > 0);
+
+  const debtSuggestions = useMemo(() => {
+    // ... (Giữ nguyên logic gợi ý nợ) ...
+    if (!balances) return [];
+    let debtors = balances
+      .filter((b) => parseFloat(b.netAmount) < -1)
+      .map((b) => ({ ...b, amount: Math.abs(parseFloat(b.netAmount)) }))
+      .sort((a, b) => b.amount - a.amount);
+    let creditors = balances
+      .filter((b) => parseFloat(b.netAmount) > 1)
+      .map((b) => ({ ...b, amount: parseFloat(b.netAmount) }))
+      .sort((a, b) => b.amount - a.amount);
     const suggestions = [];
-
-    // 2. Thuật toán tham lam (Greedy) để ghép cặp
-    let i = 0; // index debtors
-    let j = 0; // index creditors
-
+    let i = 0,
+      j = 0;
     while (i < debtors.length && j < creditors.length) {
-      const debtor = debtors[i];
-      const creditor = creditors[j];
-
-      // Số tiền giao dịch là min của 2 bên
+      const debtor = debtors[i],
+        creditor = creditors[j];
       const amount = Math.min(debtor.amount, creditor.amount);
-
-      if (amount > 0) {
+      if (amount > 0)
         suggestions.push({
           from: debtor.userName,
           fromId: debtor.userId,
           to: creditor.userName,
           toId: creditor.userId,
-          amount: amount
+          amount,
         });
-      }
-
-      // Cập nhật số dư sau giao dịch
       debtor.amount -= amount;
       creditor.amount -= amount;
-
-      // Nếu ai đã hết nợ/đòi xong thì chuyển sang người tiếp theo
       if (debtor.amount < 1) i++;
       if (creditor.amount < 1) j++;
     }
-
     return suggestions;
   }, [balances]);
 
-  const getMemberName = (m: any) => m.userName || m.user?.userName || 'Thành viên';
-  const getMemberId = (m: any) => m.userId || m.user?.id;
-
-  const getPayerName = (paidById: string) => {
-    const member = members?.find((m) => getMemberId(m) === paidById);
-    return member ? getMemberName(member) : 'Ai đó';
-  };
-
-
-
-  // --- LOGIC TÍNH TOÁN THỐNG KÊ (LOẠI BỎ THANH TOÁN NỢ) ---
-  const settlementBillIds = useMemo(() => {
-      return bills?.filter(b => b.description === "Thanh toán nợ").map(b => b.id) || [];
-  }, [bills]);
-
-  const realExpenses = useMemo(() => {
-      return expenses?.filter(e => !settlementBillIds.includes(e.billId)) || [];
-  }, [expenses, settlementBillIds]);
->>>>>>> 22b97af922afabf910465e465b77df16d834ff42
-
-  // 3. Tính toán thống kê
-  const calculatedStats = useMemo(() => {
-      if (!realExpenses || !members) return [];
-      const map: Record<string, number> = {};
-      realExpenses.forEach(e => { map[e.paidBy] = (map[e.paidBy] || 0) + e.amount; });
-      return Object.keys(map).map(userId => {
-          const member = members.find((m: any) => (m.userId || m.user?.id) === userId);
-          return { userName: member ? (member.userName || member.user?.userName || 'Thành viên') : 'Ai đó', totalAmount: map[userId] };
-      });
-  }, [realExpenses, members]);
-
-  const totalSpent = calculatedStats.reduce((sum, s) => sum + s.totalAmount, 0);
-  const pieData = calculatedStats.map((s, i) => ({ key: s.userName, value: s.totalAmount, color: PIE_COLORS[i % PIE_COLORS.length] })).filter(d => d.value > 0);
-
-  const debtSuggestions = useMemo(() => {
-    // ... (Giữ nguyên logic gợi ý nợ) ...
-    if (!balances) return [];
-    let debtors = balances.filter(b => parseFloat(b.netAmount) < -1).map(b => ({ ...b, amount: Math.abs(parseFloat(b.netAmount)) })).sort((a, b) => b.amount - a.amount);
-    let creditors = balances.filter(b => parseFloat(b.netAmount) > 1).map(b => ({ ...b, amount: parseFloat(b.netAmount) })).sort((a, b) => b.amount - a.amount);
-    const suggestions = [];
-    let i = 0, j = 0;
-    while (i < debtors.length && j < creditors.length) {
-      const debtor = debtors[i], creditor = creditors[j];
-      const amount = Math.min(debtor.amount, creditor.amount);
-      if (amount > 0) suggestions.push({ from: debtor.userName, fromId: debtor.userId, to: creditor.userName, toId: creditor.userId, amount });
-      debtor.amount -= amount; creditor.amount -= amount;
-      if (debtor.amount < 1) i++; if (creditor.amount < 1) j++;
-    }
-    return suggestions;
-  }, [balances]);
-
-  const myBalanceObj = balances?.find(b => b.userId === appState?.userId);
+  const myBalanceObj = balances?.find((b) => b.userId === appState?.userId);
   const myNetBalance = myBalanceObj ? parseFloat(myBalanceObj.netAmount) : 0;
-  const myTotalPaid = realExpenses ? realExpenses.filter(e => e.paidBy === appState?.userId).reduce((sum, e) => sum + e.amount, 0) : 0;
+  const myTotalPaid = realExpenses
+    ? realExpenses
+        .filter((e) => e.paidBy === appState?.userId)
+        .reduce((sum, e) => sum + e.amount, 0)
+    : 0;
   const myActualCost = myTotalPaid - myNetBalance;
 
-<<<<<<< HEAD
-  if (l1 || l2 || l3 || l4) return <ActivityIndicator size="large" color={APP_COLOR.ORANGE} style={styles.center} />;
-=======
-  if (l1 || l2 || l3 || l4) {
-    return <ActivityIndicator size="large" color={APP_COLOR.ORANGE} style={styles.center} />;
-  }
-  // ... (renderPersonalStats & renderBalanceList giữ nguyên) ...
-  const renderPersonalStats = () => {
-     const isDebt = myNetBalance < 0;
-     return (
-       <View style={styles.personalCard}>
-         <Text style={styles.cardTitle}>Cá nhân tôi</Text>
-         <View style={styles.rowStat}>
-           <View style={styles.statItem}>
-             <Text style={styles.statLabel}>Số dư nợ</Text>
-             <Text style={[styles.statValue, isDebt ? styles.debt : styles.credit]}>
-               {myNetBalance === 0 ? '0đ' : `${isDebt ? '' : '+'}${myNetBalance.toLocaleString('vi-VN')}đ`}
-             </Text>
-             <Text style={styles.statSub}>{isDebt ? 'Bạn đang nợ' : 'Bạn được nhận'}</Text>
-           </View>
-           <View style={styles.divider} />
-           <View style={styles.statItem}>
-             <Text style={styles.statLabel}>Chi tiêu thực</Text>
-             <Text style={[styles.statValue, { color: '#333' }]}>
-               {myActualCost.toLocaleString('vi-VN')}đ
-             </Text>
-             <Text style={styles.statSub}>Tổng phần của bạn</Text>
-           </View>
-           <View style={styles.divider} />
-           <View style={styles.statItem}>
-             <Text style={styles.statLabel}>Đã trả</Text>
-             <Text style={[styles.statValue, { color: '#007AFF' }]}>
-               {myTotalPaid.toLocaleString('vi-VN')}đ
-             </Text>
-             <Text style={styles.statSub}>Tiền bạn đã ứng</Text>
-           </View>
-         </View>
-       </View>
-     );
-  };
-
-  const renderBalanceList = () => (
-    <View style={styles.card}>
-      <Text style={styles.cardHeader}>Chi tiết công nợ nhóm</Text>
-      {balances && balances.filter(b => parseFloat(b.netAmount) !== 0).length > 0 ? (
-        balances.map((balance) => {
-          const amount = parseFloat(balance.netAmount);
-          if (amount === 0) return null;
-          const isDebt = amount < 0;
-          return (
-            <TouchableOpacity
-              key={balance.userId}
-              style={styles.balanceItem}
-              onPress={() =>
-                router.push({
-                  pathname: '/(tabs)/groups/member/[userId]',
-                  params: { userId: balance.userId, userName: balance.userName, groupId },
-                })
-              }
-            >
-              <Avatar name={balance.userName} />
-              <View style={styles.balanceInfo}>
-                <Text style={styles.balanceName}>{balance.userName}</Text>
-                <Text style={styles.balanceStatus}>{isDebt ? 'đang nợ' : 'được nhận lại'}</Text>
-              </View>
-              <Text style={[styles.balanceAmount, isDebt ? styles.debt : styles.credit]}>
-                {isDebt ? '' : '+'}{amount.toLocaleString('vi-VN')}đ
-              </Text>
-            </TouchableOpacity>
-          );
-        })
-      ) : (
-        <Text style={styles.emptyText}>Mọi người đã thanh toán sòng phẳng.</Text>
-      )}
-    </View>
-  );
-
-  const renderDebtSuggestions = () => (
-    <View style={styles.card}>
-      <Text style={styles.cardHeader}>Gợi ý thanh toán</Text>
-      {debtSuggestions.length > 0 ? (
-        debtSuggestions.map((item, index) => (
-          <TouchableOpacity 
-            key={index} 
-            style={styles.suggestionItem}
-            onPress={() => {
-                Alert.alert(
-                    "Xác nhận thanh toán",
-                    `Bạn có muốn đánh dấu là ${item.from} đã trả ${item.amount.toLocaleString('vi-VN')}đ cho ${item.to} không?`,
-                    [
-                        { text: "Hủy", style: "cancel" },
-                        { 
-                            text: "Xác nhận", 
-                            onPress: () => handleSettlement(item)
-                        }
-                    ]
-                );
-            }}
-          >
-            <View style={styles.suggestionRow}>
-                {/* Avatars */}
-                <View style={{ width: 60, height: 36, marginRight: 5 }}>
-                    <View style={{ position: 'absolute', left: 0, zIndex: 2 }}>
-                        <Avatar name={item.from} size={36} style={{ marginRight: 0 }} />
-                    </View>
-                    <View style={{ position: 'absolute', left: 20, zIndex: 1 }}>
-                        <View style={{ borderWidth: 2, borderColor: 'white', borderRadius: 18 }}>
-                            <Avatar name={item.to} size={36} style={{ marginRight: 0 }} />
-                        </View>
-                    </View>
-                </View>
-
-                {/* Text */}
-                <View style={{ flex: 1, justifyContent: 'center' }}>
-                    <Text style={styles.suggestionText} numberOfLines={1}>
-                        <Text style={{fontWeight: 'bold', color: '#333'}}>{item.from}</Text>
-                        <Text> trả </Text>
-                        <Text style={{fontWeight: 'bold', color: '#333'}}>{item.to}</Text>
-                    </Text>
-                </View>
-
-                {/* Amount */}
-                <Text style={styles.suggestionAmount}>{item.amount.toLocaleString('vi-VN')}đ</Text>
-            </View>
-          </TouchableOpacity>
-        ))
-      ) : (
-        <Text style={styles.emptyText}>Không có khoản nợ nào cần thanh toán.</Text>
-      )}
-    </View>
-  );
-
-  // --- TAB GIAO DỊCH ---
-  const renderTransactions = () => (
-    <View>
-      <View style={styles.card}>
-        <Text style={styles.chartTitle}>Tổng chi tiêu: <Text style={{color: APP_COLOR.ORANGE}}>{totalSpent.toLocaleString('vi-VN')}đ</Text></Text>
-        <View style={styles.chartContainer}>
-          <SkiaPieChart data={pieData} size={140} totalValue={totalSpent} />
-          <View style={styles.legendContainer}>
-            {calculatedStats.map((stat, index) => (
-              <View style={styles.legendItem} key={stat.userName}>
-                <View style={[styles.legendColor, { backgroundColor: PIE_COLORS[index % PIE_COLORS.length] }]} />
-                <Text style={styles.legendName}>{stat.userName}</Text>
-                <Text style={styles.legendPercent}>{totalSpent > 0 ? ((stat.totalAmount / totalSpent) * 100).toFixed(0) : 0}%</Text>
-              </View>
-            ))}
-          </View>
-        </View>
-      </View>
-
-      <View style={styles.listHeader}>
-        <Text style={styles.sectionTitle}>Lịch sử chi tiêu</Text>
-        
-        <View style={styles.searchRow}>
-          <View style={styles.searchBox}>
-            <Ionicons name="search" size={20} color="gray" style={{marginRight: 5}}/>
-            <TextInput 
-              placeholder="Tìm kiếm..." 
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              style={styles.searchInput}
-            />
-            {searchQuery.length > 0 && (
-                <TouchableOpacity onPress={() => setSearchQuery('')}>
-                    <Ionicons name="close-circle" size={16} color="gray" />
-                </TouchableOpacity>
-            )}
-          </View>
-          <TouchableOpacity 
-            style={[styles.filterButton, (!!filterPayer || sortOption !== 'DATE_DESC') && styles.filterActive]}
-            onPress={() => setShowFilterModal(true)}
-          >
-            <Ionicons name="options" size={24} color={(filterPayer || sortOption !== 'DATE_DESC') ? APP_COLOR.ORANGE : "#555"} />
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {filteredExpenses.map((item) => {
-        const payerName = getPayerName(item.paidBy);
-        const date = new Date(item.createdTime);
-        return (
-          <TouchableOpacity
-            key={item.id}
-            style={styles.expenseItem}
-            onPress={() => router.push({
-                pathname: '/(tabs)/groups/expense/[expenseId]',
-                params: { expenseId: item.id }
-            })}
-          >
-            <View style={styles.dateBox}>
-              <Text style={styles.dateMonth}>T{(date.getMonth() + 1).toString().padStart(2, '0')}</Text>
-              <Text style={styles.dateDay}>{date.getDate()}</Text>
-            </View>
-            <View style={styles.expenseInfo}>
-              <Text style={styles.expenseName}>{item.description}</Text>
-              <Text style={styles.expensePayer}>{payerName} đã trả</Text>
-            </View>
-            <View>
-                <Text style={styles.expenseAmount}>{item.amount.toLocaleString('vi-VN')}đ</Text>
-                <Text style={styles.expenseSub}>chi tiêu</Text>
-            </View>
-          </TouchableOpacity>
-        );
-      })}
-      {filteredExpenses.length === 0 && (
-        <Text style={styles.emptyText}>
-          {searchQuery || filterPayer ? 'Không tìm thấy kết quả phù hợp.' : 'Chưa có chi tiêu nào.'}
-        </Text>
-      )}
-    </View>
-  );
-
-  // --- MODAL BỘ LỌC (CÓ NÚT RESET) ---
-  const renderFilterModal = () => (
-    <Modal
-      animationType="slide"
-      transparent={true}
-      visible={showFilterModal}
-      onRequestClose={() => setShowFilterModal(false)}
-    >
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Bộ Lọc & Sắp Xếp</Text>
-            <TouchableOpacity onPress={() => setShowFilterModal(false)}>
-              <Ionicons name="close" size={24} color="#333" />
-            </TouchableOpacity>
-          </View>
-
-          <Text style={styles.filterLabel}>Sắp xếp theo</Text>
-          <View style={styles.filterOptions}>
-            {/* ... (Các nút sắp xếp giữ nguyên) ... */}
-            <TouchableOpacity style={[styles.filterChip, sortOption === 'DATE_DESC' && styles.chipActive]} onPress={() => setSortOption('DATE_DESC')}>
-                <Text style={[styles.chipText, sortOption === 'DATE_DESC' && styles.chipTextActive]}>Mới nhất</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.filterChip, sortOption === 'DATE_ASC' && styles.chipActive]} onPress={() => setSortOption('DATE_ASC')}>
-                <Text style={[styles.chipText, sortOption === 'DATE_ASC' && styles.chipTextActive]}>Cũ nhất</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.filterChip, sortOption === 'AMOUNT_DESC' && styles.chipActive]} onPress={() => setSortOption('AMOUNT_DESC')}>
-                <Text style={[styles.chipText, sortOption === 'AMOUNT_DESC' && styles.chipTextActive]}>Tiền cao nhất</Text>
-            </TouchableOpacity>
-          </View>
-
-          <Text style={styles.filterLabel}>Người trả tiền</Text>
-          <ScrollView style={{maxHeight: 150}}>
-            <TouchableOpacity style={styles.rowFilter} onPress={() => setFilterPayer(null)}>
-                <Ionicons name={filterPayer === null ? "radio-button-on" : "radio-button-off"} size={20} color={APP_COLOR.ORANGE} />
-                <Text style={styles.rowText}>Tất cả</Text>
-            </TouchableOpacity>
-            {members?.map(m => {
-                const memberId = getMemberId(m);
-                return (
-                    <TouchableOpacity key={memberId || m.id} style={styles.rowFilter} onPress={() => memberId && setFilterPayer(memberId)}>
-                        <Ionicons name={(filterPayer === memberId && memberId) ? "radio-button-on" : "radio-button-off"} size={20} color={APP_COLOR.ORANGE} />
-                        <Text style={styles.rowText}>{getMemberName(m)}</Text>
-                    </TouchableOpacity>
-                );
-            })}
-          </ScrollView>
-
-          {/* BUTTONS: Reset & Apply */}
-          <View style={styles.modalFooter}>
-             <TouchableOpacity 
-                style={styles.resetButton}
-                onPress={handleResetFilter}
-             >
-                <Text style={styles.resetButtonText}>Đặt lại</Text>
-             </TouchableOpacity>
-             <TouchableOpacity 
-                style={styles.applyButton}
-                onPress={() => setShowFilterModal(false)}
-             >
-                <Text style={styles.applyButtonText}>Áp dụng</Text>
-             </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-    </Modal>
-  );
->>>>>>> 22b97af922afabf910465e465b77df16d834ff42
+  if (l1 || l2 || l3 || l4)
+    return (
+      <ActivityIndicator
+        size="large"
+        color={APP_COLOR.ORANGE}
+        style={styles.center}
+      />
+    );
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"} keyboardVerticalOffset={90}>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={90}
+    >
       <View style={styles.container}>
         <View style={styles.tabHeader}>
-            <TouchableOpacity style={[styles.tabButton, activeTab === 'BALANCES' && styles.tabActive]} onPress={() => setActiveTab('BALANCES')}><Text style={[styles.tabText, activeTab === 'BALANCES' && styles.tabTextActive]}>Nợ dư</Text></TouchableOpacity>
-            <TouchableOpacity style={[styles.tabButton, activeTab === 'TRANSACTIONS' && styles.tabActive]} onPress={() => setActiveTab('TRANSACTIONS')}><Text style={[styles.tabText, activeTab === 'TRANSACTIONS' && styles.tabTextActive]}>Giao dịch</Text></TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.tabButton,
+              activeTab === "BALANCES" && styles.tabActive,
+            ]}
+            onPress={() => setActiveTab("BALANCES")}
+          >
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === "BALANCES" && styles.tabTextActive,
+              ]}
+            >
+              Nợ dư
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.tabButton,
+              activeTab === "TRANSACTIONS" && styles.tabActive,
+            ]}
+            onPress={() => setActiveTab("TRANSACTIONS")}
+          >
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === "TRANSACTIONS" && styles.tabTextActive,
+              ]}
+            >
+              Giao dịch
+            </Text>
+          </TouchableOpacity>
         </View>
 
-        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-          {activeTab === 'BALANCES' ? (
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
+          {activeTab === "BALANCES" ? (
             <>
-               <PersonalStatsCard netBalance={myNetBalance} totalPaid={myTotalPaid} actualCost={myActualCost} />
-               <View style={styles.card}>
-                 <Text style={styles.cardHeader}>Gợi ý thanh toán</Text>
-                 {debtSuggestions.length ? debtSuggestions.map((item, i) => <DebtSuggestionItem key={i} item={item} getAvatar={getAvatar} onPress={() => setActionModal({ visible: true, item })} />) : <Text style={styles.emptyText}>Không có khoản nợ nào.</Text>}
-               </View>
-               <View style={styles.card}>
-                 <Text style={styles.cardHeader}>Chi tiết công nợ</Text>
-                 {balances?.filter(b => parseFloat(b.netAmount) !== 0).length ? balances.map(b => parseFloat(b.netAmount) !== 0 && <BalanceItem key={b.userId} balance={b} avatar={getAvatar(b.userId)} onPress={() => router.push({ pathname: '/(tabs)/groups/member/[userId]', params: { userId: b.userId, userName: b.userName, groupId } })} />) : <Text style={styles.emptyText}>Sòng phẳng.</Text>}
-               </View>
+              <PersonalStatsCard
+                netBalance={myNetBalance}
+                totalPaid={myTotalPaid}
+                actualCost={myActualCost}
+              />
+              <View style={styles.card}>
+                <Text style={styles.cardHeader}>Gợi ý thanh toán</Text>
+                {debtSuggestions.length ? (
+                  debtSuggestions.map((item, i) => (
+                    <DebtSuggestionItem
+                      key={i}
+                      item={item}
+                      getAvatar={getAvatar}
+                      onPress={() => setActionModal({ visible: true, item })}
+                    />
+                  ))
+                ) : (
+                  <Text style={styles.emptyText}>Không có khoản nợ nào.</Text>
+                )}
+              </View>
+              <View style={styles.card}>
+                <Text style={styles.cardHeader}>Chi tiết công nợ</Text>
+                {balances?.filter((b) => parseFloat(b.netAmount) !== 0)
+                  .length ? (
+                  balances.map(
+                    (b) =>
+                      parseFloat(b.netAmount) !== 0 && (
+                        <BalanceItem
+                          key={b.userId}
+                          balance={b}
+                          avatar={getAvatar(b.userId)}
+                          onPress={() =>
+                            router.push({
+                              pathname: "/(tabs)/groups/member/[userId]",
+                              params: {
+                                userId: b.userId,
+                                userName: b.userName,
+                                groupId,
+                              },
+                            })
+                          }
+                        />
+                      )
+                  )
+                ) : (
+                  <Text style={styles.emptyText}>Sòng phẳng.</Text>
+                )}
+              </View>
             </>
           ) : (
-             <View>
-                {totalSpent > 0 && (
-                  <View style={styles.card}>
-                    <Text style={styles.chartTitle}>Tổng chi: <Text style={{color: APP_COLOR.ORANGE}}>{totalSpent.toLocaleString('vi-VN')}đ</Text></Text>
-                    <View style={styles.chartContainer}><SkiaPieChart data={pieData} size={140} totalValue={totalSpent} /></View>
-                    <View style={styles.legendContainer}>{calculatedStats.map((s, i) => <View style={styles.legendItem} key={s.userName}><View style={[styles.legendColor, { backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }]} /><Text style={styles.legendName}>{s.userName}</Text><Text style={styles.legendPercent}>{totalSpent > 0 ? ((s.totalAmount / totalSpent) * 100).toFixed(0) : 0}%</Text></View>)}</View>
+            <View>
+              {totalSpent > 0 && (
+                <View style={styles.card}>
+                  <Text style={styles.chartTitle}>
+                    Tổng chi:{" "}
+                    <Text style={{ color: APP_COLOR.ORANGE }}>
+                      {totalSpent.toLocaleString("vi-VN")}đ
+                    </Text>
+                  </Text>
+                  <View style={styles.chartContainer}>
+                    <SkiaPieChart
+                      data={pieData}
+                      size={140}
+                      totalValue={totalSpent}
+                    />
                   </View>
-                )}
-                <View style={styles.listHeader}>
-                  <Text style={styles.sectionTitle}>Lịch sử</Text>
-                  <View style={styles.searchRow}>
-                    <View style={styles.searchBox}><Ionicons name="search" size={20} color="gray"/><TextInput placeholder="Tìm kiếm..." value={searchQuery} onChangeText={setSearchQuery} style={styles.searchInput} />{searchQuery.length > 0 && <TouchableOpacity onPress={() => setSearchQuery('')}><Ionicons name="close-circle" size={16} color="gray" /></TouchableOpacity>}</View>
-                    <TouchableOpacity style={[styles.filterButton, (!!filterPayer || sortOption !== 'DATE_DESC') && styles.filterActive]} onPress={() => setShowFilterModal(true)}><Ionicons name="options" size={24} color={(filterPayer || sortOption !== 'DATE_DESC') ? APP_COLOR.ORANGE : "#555"} /></TouchableOpacity>
+                  <View style={styles.legendContainer}>
+                    {calculatedStats.map((s, i) => (
+                      <View style={styles.legendItem} key={s.userName}>
+                        <View
+                          style={[
+                            styles.legendColor,
+                            {
+                              backgroundColor:
+                                PIE_COLORS[i % PIE_COLORS.length],
+                            },
+                          ]}
+                        />
+                        <Text style={styles.legendName}>{s.userName}</Text>
+                        <Text style={styles.legendPercent}>
+                          {totalSpent > 0
+                            ? ((s.totalAmount / totalSpent) * 100).toFixed(0)
+                            : 0}
+                          %
+                        </Text>
+                      </View>
+                    ))}
                   </View>
                 </View>
-                {filteredExpenses.map(item => (
-                   <ExpenseItem 
-                      key={item.id} 
-                      item={item} // 👈 QUAN TRỌNG: Đã truyền đúng prop item
-                      payerName={getPayerName(item.paidBy)} 
-                      onPress={(id) => router.push({ pathname: '/(tabs)/groups/expense/[expenseId]', params: { expenseId: id } })} 
-                   />
-                ))}
-                {filteredExpenses.length === 0 && <Text style={styles.emptyText}>Không tìm thấy chi tiêu nào.</Text>}
-             </View>
+              )}
+              <View style={styles.listHeader}>
+                <Text style={styles.sectionTitle}>Lịch sử</Text>
+                <View style={styles.searchRow}>
+                  <View style={styles.searchBox}>
+                    <Ionicons name="search" size={20} color="gray" />
+                    <TextInput
+                      placeholder="Tìm kiếm..."
+                      value={searchQuery}
+                      onChangeText={setSearchQuery}
+                      style={styles.searchInput}
+                    />
+                    {searchQuery.length > 0 && (
+                      <TouchableOpacity onPress={() => setSearchQuery("")}>
+                        <Ionicons name="close-circle" size={16} color="gray" />
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                  <TouchableOpacity
+                    style={[
+                      styles.filterButton,
+                      (!!filterPayer || sortOption !== "DATE_DESC") &&
+                        styles.filterActive,
+                    ]}
+                    onPress={() => setShowFilterModal(true)}
+                  >
+                    <Ionicons
+                      name="options"
+                      size={24}
+                      color={
+                        filterPayer || sortOption !== "DATE_DESC"
+                          ? APP_COLOR.ORANGE
+                          : "#555"
+                      }
+                    />
+                  </TouchableOpacity>
+                </View>
+              </View>
+              {filteredExpenses.map((item) => (
+                <ExpenseItem
+                  key={item.id}
+                  item={item} // 👈 QUAN TRỌNG: Đã truyền đúng prop item
+                  payerName={getPayerName(item.paidBy)}
+                  onPress={(id) =>
+                    router.push({
+                      pathname: "/(tabs)/groups/expense/[expenseId]",
+                      params: { expenseId: id },
+                    })
+                  }
+                />
+              ))}
+              {filteredExpenses.length === 0 && (
+                <Text style={styles.emptyText}>
+                  Không tìm thấy chi tiêu nào.
+                </Text>
+              )}
+            </View>
           )}
         </ScrollView>
 
-        <TouchableOpacity style={styles.fab} onPress={() => router.push({ pathname: '/(tabs)/groups/create-expense', params: { groupId } })}><Ionicons name="add" size={30} color="white" /></TouchableOpacity>
+        <TouchableOpacity
+          style={styles.fab}
+          onPress={() =>
+            router.push({
+              pathname: "/(tabs)/groups/create-expense",
+              params: { groupId },
+            })
+          }
+        >
+          <Ionicons name="add" size={30} color="white" />
+        </TouchableOpacity>
 
-        <StatsFilterModal visible={showFilterModal} onClose={() => setShowFilterModal(false)} sortOption={sortOption} setSortOption={setSortOption} filterPayer={filterPayer} setFilterPayer={setFilterPayer} members={members} onReset={handleResetFilter} />
-        
+        <StatsFilterModal
+          visible={showFilterModal}
+          onClose={() => setShowFilterModal(false)}
+          sortOption={sortOption}
+          setSortOption={setSortOption}
+          filterPayer={filterPayer}
+          setFilterPayer={setFilterPayer}
+          members={members}
+          onReset={handleResetFilter}
+        />
+
         <ActionModal
-            visible={actionModal.visible}
-            onClose={() => setActionModal({ visible: false, item: null })}
-            item={actionModal.item}
-            currentUserId={String(appState?.userId)}
-            onPay={() => handleSettlement(actionModal.item)}
-            onRemind={() => handleRemind(actionModal.item)}
+          visible={actionModal.visible}
+          onClose={() => setActionModal({ visible: false, item: null })}
+          item={actionModal.item}
+          currentUserId={String(appState?.userId)}
+          onPay={() => handleSettlement(actionModal.item)}
+          onRemind={() => handleRemind(actionModal.item)}
         />
 
         <ConfirmModal
-            visible={confirmModal.visible}
-            onClose={() => setConfirmModal({ ...confirmModal, visible: false })}
-            onConfirm={confirmModal.onConfirm}
-            title={confirmModal.title}
-            message={confirmModal.message}
-            type={confirmModal.type}
+          visible={confirmModal.visible}
+          onClose={() => setConfirmModal({ ...confirmModal, visible: false })}
+          onConfirm={confirmModal.onConfirm}
+          title={confirmModal.title}
+          message={confirmModal.message}
+          type={confirmModal.type}
         />
       </View>
     </KeyboardAvoidingView>
@@ -603,32 +526,100 @@ const GroupStatsTab = ({ route }: any) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F2F2F7' },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  container: { flex: 1, backgroundColor: "#F2F2F7" },
+  center: { flex: 1, justifyContent: "center", alignItems: "center" },
   scrollContent: { padding: 15, paddingBottom: 90 },
-  tabHeader: { flexDirection: 'row', backgroundColor: 'white', padding: 10, marginHorizontal: 15, marginTop: 15, borderRadius: 12, elevation: 2 },
-  tabButton: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 8 },
+  tabHeader: {
+    flexDirection: "row",
+    backgroundColor: "white",
+    padding: 10,
+    marginHorizontal: 15,
+    marginTop: 15,
+    borderRadius: 12,
+    elevation: 2,
+  },
+  tabButton: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: "center",
+    borderRadius: 8,
+  },
   tabActive: { backgroundColor: APP_COLOR.ORANGE },
-  tabText: { fontSize: 14, fontWeight: '600', color: '#666' },
-  tabTextActive: { color: 'white' },
-  card: { backgroundColor: 'white', borderRadius: 16, padding: 15, marginBottom: 15, elevation: 2 },
-  cardHeader: { fontSize: 16, fontWeight: 'bold', marginBottom: 10, color: '#333' },
-  emptyText: { color: '#888', marginTop: 5, textAlign: 'center' },
-  chartTitle: { fontSize: 16, fontWeight: 'bold', marginBottom: 15 },
-  chartContainer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
+  tabText: { fontSize: 14, fontWeight: "600", color: "#666" },
+  tabTextActive: { color: "white" },
+  card: {
+    backgroundColor: "white",
+    borderRadius: 16,
+    padding: 15,
+    marginBottom: 15,
+    elevation: 2,
+  },
+  cardHeader: {
+    fontSize: 16,
+    fontWeight: "bold",
+    marginBottom: 10,
+    color: "#333",
+  },
+  emptyText: { color: "#888", marginTop: 5, textAlign: "center" },
+  chartTitle: { fontSize: 16, fontWeight: "bold", marginBottom: 15 },
+  chartContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
   legendContainer: { flex: 1, marginLeft: 15 },
-  legendItem: { flexDirection: 'row', alignItems: 'center', marginBottom: 8, justifyContent: 'space-between' },
+  legendItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+    justifyContent: "space-between",
+  },
   legendColor: { width: 12, height: 12, borderRadius: 3, marginRight: 8 },
-  legendName: { fontSize: 13, color: '#333', flex: 1 },
-  legendPercent: { fontSize: 13, fontWeight: 'bold', color: '#666' },
+  legendName: { fontSize: 13, color: "#333", flex: 1 },
+  legendPercent: { fontSize: 13, fontWeight: "bold", color: "#666" },
   listHeader: { marginBottom: 10, marginTop: 5 },
-  sectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#333', marginBottom: 10 },
-  searchRow: { flexDirection: 'row', gap: 10 },
-  searchBox: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: 'white', borderRadius: 10, paddingHorizontal: 12, height: 44, borderWidth: 1, borderColor: '#eee' },
-  searchInput: { flex: 1, height: '100%', fontSize: 15, marginLeft: 5 },
-  filterButton: { width: 44, height: 44, borderRadius: 10, backgroundColor: 'white', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#eee' },
-  filterActive: { borderColor: APP_COLOR.ORANGE, backgroundColor: '#FFF5E5' },
-  fab: { position: 'absolute', right: 20, bottom: 20, backgroundColor: APP_COLOR.ORANGE, width: 56, height: 56, borderRadius: 28, justifyContent: 'center', alignItems: 'center', elevation: 6 },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#333",
+    marginBottom: 10,
+  },
+  searchRow: { flexDirection: "row", gap: 10 },
+  searchBox: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "white",
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    height: 44,
+    borderWidth: 1,
+    borderColor: "#eee",
+  },
+  searchInput: { flex: 1, height: "100%", fontSize: 15, marginLeft: 5 },
+  filterButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 10,
+    backgroundColor: "white",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#eee",
+  },
+  filterActive: { borderColor: APP_COLOR.ORANGE, backgroundColor: "#FFF5E5" },
+  fab: {
+    position: "absolute",
+    right: 20,
+    bottom: 20,
+    backgroundColor: APP_COLOR.ORANGE,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 6,
+  },
 });
 
 export default GroupStatsTab;

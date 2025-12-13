@@ -1,8 +1,8 @@
-import React from 'react';
-import { useCustomFlatListHook } from './hooks/useCustomFlatListHook';
-import { Animated, FlatListProps, View } from 'react-native';
+import React, { JSX } from "react";
+import { useCustomFlatListHook } from "./hooks/useCustomFlatListHook";
+import { Animated, FlatListProps, View } from "react-native";
 
-type CustomFlatListProps<T> = Omit<FlatListProps<T>, 'ListHeaderComponent'> & {
+type CustomFlatListProps<T> = Omit<FlatListProps<T>, "ListHeaderComponent"> & {
   /**
    * An element that is above all
    *
@@ -42,13 +42,15 @@ function CustomFlatList<T>({
     <View style={style}>
       <Animated.View // <-- Sticky Component
         style={styles.stickyElement}
-        onLayout={onLayoutStickyElement}>
+        onLayout={onLayoutStickyElement}
+      >
         {props.StickyElementComponent}
       </Animated.View>
 
       <Animated.View // <-- Top of List Component
         style={styles.topElement}
-        onLayout={onLayoutTopListElement}>
+        onLayout={onLayoutTopListElement}
+      >
         {props.TopListElementComponent}
       </Animated.View>
 
