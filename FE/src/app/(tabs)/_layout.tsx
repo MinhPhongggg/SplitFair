@@ -2,8 +2,7 @@
 import { APP_COLOR } from "@/utils/constant";
 import { Tabs } from "expo-router";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import { AntDesign, Ionicons } from "@expo/vector-icons";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { Ionicons } from "@expo/vector-icons";
 import { Octicons } from "@expo/vector-icons";
 
 const TabLayout = () => {
@@ -26,8 +25,7 @@ const TabLayout = () => {
         />
       );
     }
-    
-    // 👇 THÊM ICON CHO TAB CÔNG NỢ
+
     if (routeName === "debts") {
       return (
         <Ionicons
@@ -37,7 +35,7 @@ const TabLayout = () => {
         />
       );
     }
-   
+
     if (routeName === "notification") {
       return focused ? (
         <Octicons name="bell-fill" size={size} color={APP_COLOR.ORANGE} />
@@ -86,8 +84,7 @@ const TabLayout = () => {
           tabBarLabel: "Nhóm",
         }}
       />
-      
-      {/* 👇 THÊM MÀN HÌNH CÔNG NỢ VÀO GIỮA */}
+
       <Tabs.Screen
         name="debts"
         options={{

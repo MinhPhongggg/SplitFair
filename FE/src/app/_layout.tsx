@@ -5,10 +5,8 @@ import { DefaultTheme, ThemeProvider } from "@react-navigation/native";
 import AppProvider from "@/context/app.context";
 import { ToastProvider } from "@/context/toast.context";
 
-// 1. Import thêm QueryClient và Provider
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-// 2. Tạo một instance của client
 const queryClient = new QueryClient();
 
 const RootLayout = () => {
@@ -21,7 +19,6 @@ const RootLayout = () => {
   };
 
   return (
-    // 3. Bọc <AppProvider> bằng <QueryClientProvider>
     <QueryClientProvider client={queryClient}>
       <GestureHandlerRootView>
         <RootSiblingParent>
@@ -54,7 +51,7 @@ const RootLayout = () => {
           </AppProvider>
         </RootSiblingParent>
       </GestureHandlerRootView>
-    </QueryClientProvider> // 3. Đóng Provider
+    </QueryClientProvider>
   );
 };
 export default RootLayout;
