@@ -4,48 +4,35 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { DefaultTheme, ThemeProvider } from "@react-navigation/native";
 import AppProvider from "@/context/app.context";
 import { ToastProvider } from "@/context/toast.context";
-
+import * as SplashScreen from "expo-splash-screen";
+import { useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+SplashScreen.preventAutoHideAsync();
 
 const queryClient = new QueryClient();
 
-const RootLayout = () => {
+export default function RootLayout() {
   const navTheme = {
     ...DefaultTheme,
-    color: {
+    colors: {
       ...DefaultTheme.colors,
       background: "transparent",
     },
   };
 
+  useEffect(() => {
+    SplashScreen.hideAsync();
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
-      <GestureHandlerRootView>
+      <GestureHandlerRootView style={{ flex: 1 }}>
         <RootSiblingParent>
           <AppProvider>
             <ToastProvider>
               <ThemeProvider value={navTheme}>
-                <Stack
-                  screenOptions={{
-                    headerStyle: { backgroundColor: "#f4511e" },
-                    headerTintColor: "#fff",
-                    headerTitleStyle: { fontWeight: "bold" },
-                  }}
-                >
-                  <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                  <Stack.Screen
-                    name="(auth)/login"
-                    options={{ headerShown: false }}
-                  />
-                  <Stack.Screen
-                    name="(auth)/welcome"
-                    options={{ headerShown: false }}
-                  />
-                  <Stack.Screen
-                    name="(auth)/signup"
-                    options={{ headerShown: false }}
-                  />
-                </Stack>
+                <Stack screenOptions={{ headerShown: false }} />
               </ThemeProvider>
             </ToastProvider>
           </AppProvider>
@@ -53,5 +40,4 @@ const RootLayout = () => {
       </GestureHandlerRootView>
     </QueryClientProvider>
   );
-};
-export default RootLayout;
+}

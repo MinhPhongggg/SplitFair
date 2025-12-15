@@ -1,0 +1,14 @@
+{
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Spring Boot-SplitfairApplication<splitfair>",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "mainClass": "com.anygroup.splitfair.SplitfairApplication",
+      "projectName": "splitfair",
+      "args": "",
+      "envFile": "${workspaceFolder}/.env"
+    }
+  ]
+}
