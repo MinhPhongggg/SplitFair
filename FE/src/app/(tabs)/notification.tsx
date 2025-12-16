@@ -19,6 +19,7 @@ import { vi } from 'date-fns/locale';
 import { router } from 'expo-router';
 import { getGroupById } from '@/api/groups'; // Import direct API calls
 import { getExpenseById } from '@/api/expense';
+import Header from '@/component/Header';
 
 const NotificationPage = () => {
   const { data: notifications, isLoading, refetch, isError } = useGetNotifications();
@@ -141,17 +142,19 @@ const NotificationPage = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Thông báo</Text>
-        <TouchableOpacity 
-            onPress={() => markAllAsRead()} 
-            disabled={isMarkingAll}
-            style={styles.readAllBtn}
-        >
-            <Ionicons name="checkmark-done-outline" size={20} color={APP_COLOR.ORANGE} />
-            <Text style={styles.readAllText}>Đọc tất cả</Text>
-        </TouchableOpacity>
-      </View>
+      <Header 
+        title="Thông báo" 
+        rightIcon={
+            <TouchableOpacity 
+                onPress={() => markAllAsRead()} 
+                disabled={isMarkingAll}
+                style={styles.readAllBtn}
+            >
+                <Ionicons name="checkmark-done-outline" size={20} color={APP_COLOR.ORANGE} />
+                <Text style={styles.readAllText}>Đọc tất cả</Text>
+            </TouchableOpacity>
+        }
+      />
 
       <FlatList
         data={notificationList}

@@ -23,6 +23,7 @@ import { useState } from 'react';
 import { useCurrentApp } from '@/context/app.context';
 import { useToast } from '@/context/toast.context';
 import * as Clipboard from 'expo-clipboard';
+import Header from '@/component/Header';
 
 const GroupListScreen = () => {
   const { data: groups, isLoading, refetch } = useGetGroups();
@@ -116,27 +117,28 @@ const GroupListScreen = () => {
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar barStyle="dark-content" backgroundColor="#F2F2F7" />
       
-      {/* Custom Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Nhóm của bạn</Text>
-        <View style={{flexDirection: 'row', gap: 10}}>
-            <TouchableOpacity 
-                style={styles.headerBtn}
-                onPress={() => setShowJoinModal(true)}
-            >
-                <Ionicons name="scan-outline" size={22} color={APP_COLOR.ORANGE} />
-            </TouchableOpacity>
-            <TouchableOpacity 
-                style={styles.headerBtn}
-                onPress={() => router.push('/(tabs)/groups/create-group')}
-            >
-                <Ionicons name="add" size={24} color={APP_COLOR.ORANGE} />
-            </TouchableOpacity>
-        </View>
-      </View>
+      <Header 
+        title="Nhóm của bạn" 
+        rightIcon={
+            <View style={{flexDirection: 'row', gap: 10}}>
+                <TouchableOpacity 
+                    style={styles.headerBtn}
+                    onPress={() => setShowJoinModal(true)}
+                >
+                    <Ionicons name="scan-outline" size={22} color={APP_COLOR.ORANGE} />
+                </TouchableOpacity>
+                <TouchableOpacity 
+                    style={styles.headerBtn}
+                    onPress={() => router.push('/(tabs)/groups/create-group')}
+                >
+                    <Ionicons name="add" size={24} color={APP_COLOR.ORANGE} />
+                </TouchableOpacity>
+            </View>
+        }
+      />
 
       <FlatList
         data={groups || []}

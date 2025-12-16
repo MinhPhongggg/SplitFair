@@ -1,12 +1,20 @@
 // src/app/(tabs)/_layout.tsx
 import { APP_COLOR } from "@/utils/constant";
 import { Tabs } from "expo-router";
+import { View } from "react-native";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { Octicons } from "@expo/vector-icons";
+import { useGetNotifications } from "@/api/hooks";
+import { Notification } from "@/types/notification.types";
 
 const TabLayout = () => {
+  const { data: notifications } = useGetNotifications();
+  const unreadCount = Array.isArray(notifications) 
+    ? notifications.filter((n: Notification) => !n.isRead).length 
+    : 0;
+
   const getIcons = (routeName: string, focused: boolean, size: number) => {
     if (routeName === "index") {
       return (
@@ -39,10 +47,29 @@ const TabLayout = () => {
     }
    
     if (routeName === "notification") {
-      return focused ? (
-        <Octicons name="bell-fill" size={size} color={APP_COLOR.ORANGE} />
-      ) : (
-        <Octicons name="bell" size={size} color={APP_COLOR.GREY} />
+      return (
+        <View>
+          {focused ? (
+            <Octicons name="bell-fill" size={size} color={APP_COLOR.ORANGE} />
+          ) : (
+            <Octicons name="bell" size={size} color={APP_COLOR.GREY} />
+          )}
+          {unreadCount > 0 && (
+            <View
+              style={{
+                position: 'absolute',
+                right: 0,
+                top: 0,
+                backgroundColor: 'red',
+                borderRadius: 5,
+                width: 10,
+                height: 10,
+                borderWidth: 1,
+                borderColor: 'white'
+              }}
+            />
+          )}
+        </View>
       );
     }
     if (routeName === "account") {
@@ -87,11 +114,10 @@ const TabLayout = () => {
         }}
       />
       
-      {/* 👇 THÊM MÀN HÌNH CÔNG NỢ VÀO GIỮA */}
       <Tabs.Screen
         name="debts"
         options={{
-          tabBarLabel: "Công nợ",
+          tabBarLabel: "Dư nợ",
         }}
       />
 

@@ -25,14 +25,7 @@ import { getURLBaseBackend } from '@/utils/api';
 import { useToast } from '@/context/toast.context';
 import ConfirmModal from '@/component/ConfirmModal';
 import Avatar from '@/component/Avatar';
-
-const PREDEFINED_AVATARS = [
-  'https://avatar.iran.liara.run/public/boy?username=User1',
-  'https://avatar.iran.liara.run/public/girl?username=User2',
-  'https://avatar.iran.liara.run/public/boy?username=User3',
-  'https://avatar.iran.liara.run/public/girl?username=User4',
-  'https://avatar.iran.liara.run/public/job/doctor/male',
-];
+import { AVATAR_PRESETS, PRESET_KEYS } from '@/utils/avatar-presets';
 
 // --- Components ---
 
@@ -199,17 +192,20 @@ const AccountPage = () => {
 
             <Text style={styles.selectAvatarLabel}></Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.avatarList} contentContainerStyle={{ paddingHorizontal: 5 }}>
-              {PREDEFINED_AVATARS.map((url, index) => (
+              {PRESET_KEYS.map((key, index) => (
                 <TouchableOpacity 
                   key={index} 
-                  onPress={() => setSelectedAvatar(url)}
+                  onPress={() => setSelectedAvatar(key)}
                   style={[
                     styles.avatarOption, 
-                    selectedAvatar === url && styles.avatarOptionSelected
+                    selectedAvatar === key && styles.avatarOptionSelected
                   ]}
                 >
-                  <Image source={{ uri: url }} style={styles.avatarOptionImage} />
-                  {selectedAvatar === url && (
+                  <Image 
+                    source={AVATAR_PRESETS[key]} 
+                    style={styles.avatarOptionImage} 
+                  />
+                  {selectedAvatar === key && (
                     <View style={styles.checkIcon}>
                       <Ionicons name="checkmark-circle" size={24} color={APP_COLOR.ORANGE} />
                     </View>

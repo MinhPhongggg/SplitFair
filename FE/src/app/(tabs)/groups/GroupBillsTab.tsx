@@ -1,5 +1,5 @@
 // src/app/(tabs)/groups/GroupBillsTab.tsx
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   Text,
@@ -19,6 +19,37 @@ const GroupBillsTab = ({ route }: any) => {
   const { groupId } = route.params;
   const { data: bills, isLoading, refetch } = useGetBillsByGroup(groupId);
 
+  // Gom nhóm các hóa đơn thanh toán nợ trùng lặp
+  const groupedBills = useMemo(() => {
+    if (!bills) return [];
+    const processedBills: (Bill & { count: number, ids: string[] })[] = [];
+    const paymentMap = new Map<string, number>();
+
+    // Sắp xếp mới nhất trước
+    const sortedBills = [...bills].sort((a, b) => new Date(b.createdTime).getTime() - new Date(a.createdTime).getTime());
+
+    sortedBills.forEach(bill => {
+       const isPayment = bill.isPayment || bill.description?.startsWith("Thanh toán nợ");
+       if (isPayment) {
+           const date = new Date(bill.createdTime).toDateString();
+           const key = `${bill.description}_${date}`;
+           
+           if (paymentMap.has(key)) {
+               const index = paymentMap.get(key)!;
+               processedBills[index].totalAmount += bill.totalAmount;
+               processedBills[index].count += 1;
+               processedBills[index].ids.push(bill.id);
+           } else {
+               paymentMap.set(key, processedBills.length);
+               processedBills.push({ ...bill, count: 1, ids: [bill.id] });
+           }
+       } else {
+           processedBills.push({ ...bill, count: 1, ids: [bill.id] });
+       }
+    });
+    return processedBills;
+  }, [bills]);
+
   if (isLoading) {
     return (
       <ActivityIndicator
@@ -29,7 +60,7 @@ const GroupBillsTab = ({ route }: any) => {
     );
   }
 
-  const renderItem = ({ item }: { item: Bill }) => (
+  const renderItem = ({ item }: { item: Bill & { count?: number } }) => (
     <TouchableOpacity
       style={styles.itemContainer}
       onPress={() => router.push(`/(tabs)/groups/bill/${item.id}`)}
@@ -38,7 +69,10 @@ const GroupBillsTab = ({ route }: any) => {
         <Ionicons name="receipt-outline" size={24} color="#007AFF" />
       </View>
       <View style={styles.itemContent}>
-        <Text style={styles.itemName}>{item.description}</Text>
+        <Text style={styles.itemName}>
+          {item.description}
+          {item.count && item.count > 1 && <Text style={{color: APP_COLOR.ORANGE, fontSize: 12}}> ({item.count} khoản)</Text>}
+        </Text>
         <Text style={styles.itemDate}>{new Date(item.createdTime).toLocaleDateString('vi-VN')}</Text>
       </View>
       <View style={styles.itemAmountContainer}>
@@ -53,7 +87,7 @@ const GroupBillsTab = ({ route }: any) => {
   return (
     <SafeAreaView style={styles.container}>
       <FlatList
-        data={bills || []}
+        data={groupedBills}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         ListEmptyComponent={

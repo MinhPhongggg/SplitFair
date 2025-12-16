@@ -256,6 +256,9 @@ const BillDetailScreen = () => {
                 <Ionicons name="document-text-outline" size={16} color="#666"/>
                 <Text style={styles.headerInfo}>{bill.description}</Text>
             </View>
+            
+          </View>
+          <View style={styles.headerRow}>
             <View style={styles.infoItem}>
                 <Ionicons name="calendar-outline" size={16} color="#666"/>
                 <Text style={styles.headerInfo}>{new Date(bill.createdTime).toLocaleDateString('vi-VN')}</Text>

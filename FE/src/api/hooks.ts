@@ -42,7 +42,7 @@ import {
   updateExpense,
   getSharesByUser,
 } from '@/api/expense';
-import { getAllDebtsByUser, getReadableBalances, markDebtAsSettled } from '@/api/debt';
+import { getAllDebtsByUser, getReadableBalances, markDebtAsSettled, settleBatchDebts } from '@/api/debt';
 import { createBill, getBillsByGroup, getBillById, deleteBill } from '@/api/bills';
 import { getAllCategories } from '@/api/category';
 import { getGroupPaymentStats, getGroupBalances } from '@/api/stats';
@@ -528,6 +528,17 @@ export const useSettleDebt = () => {
       // Làm mới danh sách nợ sau khi update thành công
       queryClient.invalidateQueries({ queryKey: ['debts'] });
       queryClient.invalidateQueries({ queryKey: ['stats'] }); 
+    },
+  });
+};
+
+export const useSettleBatchDebts = () => {
+  const queryClient = useQueryClient();
+  return useMutation<void, AxiosError, string[]>({
+    mutationFn: (debtIds) => settleBatchDebts(debtIds),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['debts'] });
+      queryClient.invalidateQueries({ queryKey: ['stats'] });
     },
   });
 };

@@ -1,9 +1,11 @@
 import { useEffect } from "react";
+import { View, ActivityIndicator } from "react-native";
 import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as SplashScreen from "expo-splash-screen";
 import { useCurrentApp } from "@/context/app.context";
 import { getAccountAPI } from "@/utils/api";
+import { APP_COLOR } from "@/utils/constant";
 
 // Giữ splash screen cho đến khi check token xong
 SplashScreen.preventAutoHideAsync();
@@ -44,7 +46,11 @@ const RootPage = () => {
     prepare();
   }, []);
 
-  return null;
+  return (
+    <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "white" }}>
+      <ActivityIndicator size="large" color={APP_COLOR.ORANGE} />
+    </View>
+  );
 };
 
 export default RootPage;

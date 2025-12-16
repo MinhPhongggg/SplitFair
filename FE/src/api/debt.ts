@@ -13,3 +13,7 @@ export const getAllDebtsByUser = (userId: string): Promise<Debt[]> => {
 export const markDebtAsSettled = (debtId: string): Promise<Debt> => {
   return axios.patch(`/api/debts/${debtId}/settle`);
 };
+
+export const settleBatchDebts = (debtIds: string[]): Promise<void> => {
+  return axios.post('/api/debts/settle-batch', debtIds);
+};

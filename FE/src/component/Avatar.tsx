@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
 import { getURLBaseBackend } from '@/utils/api';
+import { getAvatarSource } from '@/utils/avatar-presets';
 
 const COLORS = [
   '#F44336', '#E91E63', '#9C27B0', '#673AB7', '#3F51B5',
@@ -34,7 +35,7 @@ const getInitials = (name: string) => {
 
 interface AvatarProps {
   name: string;
-  avatar?: string | null; // Thêm prop avatar
+  avatar?: string | null; 
   size?: number;
   style?: any;
 }
@@ -43,6 +44,19 @@ const Avatar = ({ name, avatar, size = 40, style }: AvatarProps) => {
   const [imageError, setImageError] = useState(false);
   const backendUrl = getURLBaseBackend();
 
+  const localSource = getAvatarSource(avatar);
+  if (localSource) {
+    return (
+      <Image
+        source={localSource}
+        style={[
+          styles.image,
+          { width: size, height: size, borderRadius: size / 2 },
+          style
+        ]}
+      />
+    );
+  }
   // Logic xử lý URL avatar
   const getAvatarUrl = (path: string) => {
     if (!path) return null;

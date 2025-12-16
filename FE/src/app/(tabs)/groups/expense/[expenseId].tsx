@@ -106,7 +106,7 @@ const ExpenseDetailScreen = () => {
     return member?.user?.avatar;
   };
 
-  const payerName = getUserName(expense.paidBy);
+  const payerName = getUserName(expense.paidBy); 
   const totalAmount = expense.amount;
   const dateStr = new Date(expense.createdTime).toLocaleDateString('vi-VN');
 
@@ -196,6 +196,7 @@ const ExpenseDetailScreen = () => {
                   <Text style={styles.metaValue}>{dateStr}</Text>
               </View>
           </View>
+          
         </View>
 
         {/* --- List --- */}

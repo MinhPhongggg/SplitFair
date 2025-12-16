@@ -9,4 +9,11 @@ export interface Debt {
   amount: number;
   status: DebtStatus;
   groupName?: string;
+  fromUserName?: string;
+  fromUserAvatar?: string;
+  toUserName?: string;
+  toUserAvatar?: string;
+
+  expenseDescription?: string;
+  createdTime?: string;
 }

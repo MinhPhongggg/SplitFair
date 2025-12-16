@@ -11,4 +11,5 @@ export interface Bill {
   status: BillStatus;
   createdTime: string; // Instant
   createdBy: string;
+  isPayment?: boolean;
 }

@@ -81,7 +81,8 @@ const GroupStatsTab = ({ route }: any) => {
         totalAmount: item.amount,
         createdBy: String(appState?.userId || ''),
         categoryId: categories?.[0]?.id || '',
-        status: 'COMPLETED'
+        status: 'COMPLETED',
+        isPayment: true // ✅ Đánh dấu là thanh toán
       });
 
       // 2. Tạo Expense
@@ -120,14 +121,23 @@ const GroupStatsTab = ({ route }: any) => {
   };
   
   // Helper
-  const getPayerName = (id: string) => members?.find(m => (m.userId || m.user?.id) === id)?.userName || 'Ai đó';
+  const getPayerName = (id: string) => {
+    const m = members?.find(m => (m.userId || m.user?.id) === id);
+    return m?.userName || m?.user?.userName || 'Ai đó';
+  };
   const getAvatar = (id: string) => members?.find(m => (m.userId || m.user?.id) === id)?.user?.avatar;
 
   // --- LOGIC TÍNH TOÁN (Đã sửa thứ tự) ---
   
   // 1. Xác định các khoản chi tiêu thực (loại bỏ thanh toán nợ)
-  const settlementBillIds = useMemo(() => bills?.filter(b => b.description === "Thanh toán nợ").map(b => b.id) || [], [bills]);
-  const realExpenses = useMemo(() => expenses?.filter(e => !settlementBillIds.includes(e.billId)) || [], [expenses, settlementBillIds]);
+  const settlementBillIds = useMemo(() => bills?.filter(b => b.isPayment || b.description?.startsWith("Thanh toán") || b.description?.startsWith("Trả nợ")).map(b => b.id) || [], [bills]);
+  const realExpenses = useMemo(() => expenses?.filter(e => {
+    if (settlementBillIds.includes(e.billId)) return false;
+    // Fallback: Kiểm tra description của expense
+    const desc = e.description?.toLowerCase() || "";
+    if (desc.startsWith("trả nợ") || desc.startsWith("thanh toán")) return false;
+    return true;
+  }) || [], [expenses, settlementBillIds]);
 
   // 2. Lọc & Sắp xếp trên danh sách `realExpenses`
   const filteredExpenses = useMemo(() => {
@@ -150,63 +160,7 @@ const GroupStatsTab = ({ route }: any) => {
     return res;
   }, [realExpenses, searchQuery, filterPayer, sortOption]);
 
-<<<<<<< HEAD
   const handleResetFilter = () => { setFilterPayer(null); setSortOption('DATE_DESC'); setShowFilterModal(false); };
-=======
-    const suggestions = [];
-
-    // 2. Thuật toán tham lam (Greedy) để ghép cặp
-    let i = 0; // index debtors
-    let j = 0; // index creditors
-
-    while (i < debtors.length && j < creditors.length) {
-      const debtor = debtors[i];
-      const creditor = creditors[j];
-
-      // Số tiền giao dịch là min của 2 bên
-      const amount = Math.min(debtor.amount, creditor.amount);
-
-      if (amount > 0) {
-        suggestions.push({
-          from: debtor.userName,
-          fromId: debtor.userId,
-          to: creditor.userName,
-          toId: creditor.userId,
-          amount: amount
-        });
-      }
-
-      // Cập nhật số dư sau giao dịch
-      debtor.amount -= amount;
-      creditor.amount -= amount;
-
-      // Nếu ai đã hết nợ/đòi xong thì chuyển sang người tiếp theo
-      if (debtor.amount < 1) i++;
-      if (creditor.amount < 1) j++;
-    }
-
-    return suggestions;
-  }, [balances]);
-
-  const getMemberName = (m: any) => m.userName || m.user?.userName || 'Thành viên';
-  const getMemberId = (m: any) => m.userId || m.user?.id;
-
-  const getPayerName = (paidById: string) => {
-    const member = members?.find((m) => getMemberId(m) === paidById);
-    return member ? getMemberName(member) : 'Ai đó';
-  };
-
-
-
-  // --- LOGIC TÍNH TOÁN THỐNG KÊ (LOẠI BỎ THANH TOÁN NỢ) ---
-  const settlementBillIds = useMemo(() => {
-      return bills?.filter(b => b.description === "Thanh toán nợ").map(b => b.id) || [];
-  }, [bills]);
-
-  const realExpenses = useMemo(() => {
-      return expenses?.filter(e => !settlementBillIds.includes(e.billId)) || [];
-  }, [expenses, settlementBillIds]);
->>>>>>> 22b97af922afabf910465e465b77df16d834ff42
 
   // 3. Tính toán thống kê
   const calculatedStats = useMemo(() => {
@@ -244,287 +198,7 @@ const GroupStatsTab = ({ route }: any) => {
   const myTotalPaid = realExpenses ? realExpenses.filter(e => e.paidBy === appState?.userId).reduce((sum, e) => sum + e.amount, 0) : 0;
   const myActualCost = myTotalPaid - myNetBalance;
 
-<<<<<<< HEAD
   if (l1 || l2 || l3 || l4) return <ActivityIndicator size="large" color={APP_COLOR.ORANGE} style={styles.center} />;
-=======
-  if (l1 || l2 || l3 || l4) {
-    return <ActivityIndicator size="large" color={APP_COLOR.ORANGE} style={styles.center} />;
-  }
-  // ... (renderPersonalStats & renderBalanceList giữ nguyên) ...
-  const renderPersonalStats = () => {
-     const isDebt = myNetBalance < 0;
-     return (
-       <View style={styles.personalCard}>
-         <Text style={styles.cardTitle}>Cá nhân tôi</Text>
-         <View style={styles.rowStat}>
-           <View style={styles.statItem}>
-             <Text style={styles.statLabel}>Số dư nợ</Text>
-             <Text style={[styles.statValue, isDebt ? styles.debt : styles.credit]}>
-               {myNetBalance === 0 ? '0đ' : `${isDebt ? '' : '+'}${myNetBalance.toLocaleString('vi-VN')}đ`}
-             </Text>
-             <Text style={styles.statSub}>{isDebt ? 'Bạn đang nợ' : 'Bạn được nhận'}</Text>
-           </View>
-           <View style={styles.divider} />
-           <View style={styles.statItem}>
-             <Text style={styles.statLabel}>Chi tiêu thực</Text>
-             <Text style={[styles.statValue, { color: '#333' }]}>
-               {myActualCost.toLocaleString('vi-VN')}đ
-             </Text>
-             <Text style={styles.statSub}>Tổng phần của bạn</Text>
-           </View>
-           <View style={styles.divider} />
-           <View style={styles.statItem}>
-             <Text style={styles.statLabel}>Đã trả</Text>
-             <Text style={[styles.statValue, { color: '#007AFF' }]}>
-               {myTotalPaid.toLocaleString('vi-VN')}đ
-             </Text>
-             <Text style={styles.statSub}>Tiền bạn đã ứng</Text>
-           </View>
-         </View>
-       </View>
-     );
-  };
-
-  const renderBalanceList = () => (
-    <View style={styles.card}>
-      <Text style={styles.cardHeader}>Chi tiết công nợ nhóm</Text>
-      {balances && balances.filter(b => parseFloat(b.netAmount) !== 0).length > 0 ? (
-        balances.map((balance) => {
-          const amount = parseFloat(balance.netAmount);
-          if (amount === 0) return null;
-          const isDebt = amount < 0;
-          return (
-            <TouchableOpacity
-              key={balance.userId}
-              style={styles.balanceItem}
-              onPress={() =>
-                router.push({
-                  pathname: '/(tabs)/groups/member/[userId]',
-                  params: { userId: balance.userId, userName: balance.userName, groupId },
-                })
-              }
-            >
-              <Avatar name={balance.userName} />
-              <View style={styles.balanceInfo}>
-                <Text style={styles.balanceName}>{balance.userName}</Text>
-                <Text style={styles.balanceStatus}>{isDebt ? 'đang nợ' : 'được nhận lại'}</Text>
-              </View>
-              <Text style={[styles.balanceAmount, isDebt ? styles.debt : styles.credit]}>
-                {isDebt ? '' : '+'}{amount.toLocaleString('vi-VN')}đ
-              </Text>
-            </TouchableOpacity>
-          );
-        })
-      ) : (
-        <Text style={styles.emptyText}>Mọi người đã thanh toán sòng phẳng.</Text>
-      )}
-    </View>
-  );
-
-  const renderDebtSuggestions = () => (
-    <View style={styles.card}>
-      <Text style={styles.cardHeader}>Gợi ý thanh toán</Text>
-      {debtSuggestions.length > 0 ? (
-        debtSuggestions.map((item, index) => (
-          <TouchableOpacity 
-            key={index} 
-            style={styles.suggestionItem}
-            onPress={() => {
-                Alert.alert(
-                    "Xác nhận thanh toán",
-                    `Bạn có muốn đánh dấu là ${item.from} đã trả ${item.amount.toLocaleString('vi-VN')}đ cho ${item.to} không?`,
-                    [
-                        { text: "Hủy", style: "cancel" },
-                        { 
-                            text: "Xác nhận", 
-                            onPress: () => handleSettlement(item)
-                        }
-                    ]
-                );
-            }}
-          >
-            <View style={styles.suggestionRow}>
-                {/* Avatars */}
-                <View style={{ width: 60, height: 36, marginRight: 5 }}>
-                    <View style={{ position: 'absolute', left: 0, zIndex: 2 }}>
-                        <Avatar name={item.from} size={36} style={{ marginRight: 0 }} />
-                    </View>
-                    <View style={{ position: 'absolute', left: 20, zIndex: 1 }}>
-                        <View style={{ borderWidth: 2, borderColor: 'white', borderRadius: 18 }}>
-                            <Avatar name={item.to} size={36} style={{ marginRight: 0 }} />
-                        </View>
-                    </View>
-                </View>
-
-                {/* Text */}
-                <View style={{ flex: 1, justifyContent: 'center' }}>
-                    <Text style={styles.suggestionText} numberOfLines={1}>
-                        <Text style={{fontWeight: 'bold', color: '#333'}}>{item.from}</Text>
-                        <Text> trả </Text>
-                        <Text style={{fontWeight: 'bold', color: '#333'}}>{item.to}</Text>
-                    </Text>
-                </View>
-
-                {/* Amount */}
-                <Text style={styles.suggestionAmount}>{item.amount.toLocaleString('vi-VN')}đ</Text>
-            </View>
-          </TouchableOpacity>
-        ))
-      ) : (
-        <Text style={styles.emptyText}>Không có khoản nợ nào cần thanh toán.</Text>
-      )}
-    </View>
-  );
-
-  // --- TAB GIAO DỊCH ---
-  const renderTransactions = () => (
-    <View>
-      <View style={styles.card}>
-        <Text style={styles.chartTitle}>Tổng chi tiêu: <Text style={{color: APP_COLOR.ORANGE}}>{totalSpent.toLocaleString('vi-VN')}đ</Text></Text>
-        <View style={styles.chartContainer}>
-          <SkiaPieChart data={pieData} size={140} totalValue={totalSpent} />
-          <View style={styles.legendContainer}>
-            {calculatedStats.map((stat, index) => (
-              <View style={styles.legendItem} key={stat.userName}>
-                <View style={[styles.legendColor, { backgroundColor: PIE_COLORS[index % PIE_COLORS.length] }]} />
-                <Text style={styles.legendName}>{stat.userName}</Text>
-                <Text style={styles.legendPercent}>{totalSpent > 0 ? ((stat.totalAmount / totalSpent) * 100).toFixed(0) : 0}%</Text>
-              </View>
-            ))}
-          </View>
-        </View>
-      </View>
-
-      <View style={styles.listHeader}>
-        <Text style={styles.sectionTitle}>Lịch sử chi tiêu</Text>
-        
-        <View style={styles.searchRow}>
-          <View style={styles.searchBox}>
-            <Ionicons name="search" size={20} color="gray" style={{marginRight: 5}}/>
-            <TextInput 
-              placeholder="Tìm kiếm..." 
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              style={styles.searchInput}
-            />
-            {searchQuery.length > 0 && (
-                <TouchableOpacity onPress={() => setSearchQuery('')}>
-                    <Ionicons name="close-circle" size={16} color="gray" />
-                </TouchableOpacity>
-            )}
-          </View>
-          <TouchableOpacity 
-            style={[styles.filterButton, (!!filterPayer || sortOption !== 'DATE_DESC') && styles.filterActive]}
-            onPress={() => setShowFilterModal(true)}
-          >
-            <Ionicons name="options" size={24} color={(filterPayer || sortOption !== 'DATE_DESC') ? APP_COLOR.ORANGE : "#555"} />
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {filteredExpenses.map((item) => {
-        const payerName = getPayerName(item.paidBy);
-        const date = new Date(item.createdTime);
-        return (
-          <TouchableOpacity
-            key={item.id}
-            style={styles.expenseItem}
-            onPress={() => router.push({
-                pathname: '/(tabs)/groups/expense/[expenseId]',
-                params: { expenseId: item.id }
-            })}
-          >
-            <View style={styles.dateBox}>
-              <Text style={styles.dateMonth}>T{(date.getMonth() + 1).toString().padStart(2, '0')}</Text>
-              <Text style={styles.dateDay}>{date.getDate()}</Text>
-            </View>
-            <View style={styles.expenseInfo}>
-              <Text style={styles.expenseName}>{item.description}</Text>
-              <Text style={styles.expensePayer}>{payerName} đã trả</Text>
-            </View>
-            <View>
-                <Text style={styles.expenseAmount}>{item.amount.toLocaleString('vi-VN')}đ</Text>
-                <Text style={styles.expenseSub}>chi tiêu</Text>
-            </View>
-          </TouchableOpacity>
-        );
-      })}
-      {filteredExpenses.length === 0 && (
-        <Text style={styles.emptyText}>
-          {searchQuery || filterPayer ? 'Không tìm thấy kết quả phù hợp.' : 'Chưa có chi tiêu nào.'}
-        </Text>
-      )}
-    </View>
-  );
-
-  // --- MODAL BỘ LỌC (CÓ NÚT RESET) ---
-  const renderFilterModal = () => (
-    <Modal
-      animationType="slide"
-      transparent={true}
-      visible={showFilterModal}
-      onRequestClose={() => setShowFilterModal(false)}
-    >
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Bộ Lọc & Sắp Xếp</Text>
-            <TouchableOpacity onPress={() => setShowFilterModal(false)}>
-              <Ionicons name="close" size={24} color="#333" />
-            </TouchableOpacity>
-          </View>
-
-          <Text style={styles.filterLabel}>Sắp xếp theo</Text>
-          <View style={styles.filterOptions}>
-            {/* ... (Các nút sắp xếp giữ nguyên) ... */}
-            <TouchableOpacity style={[styles.filterChip, sortOption === 'DATE_DESC' && styles.chipActive]} onPress={() => setSortOption('DATE_DESC')}>
-                <Text style={[styles.chipText, sortOption === 'DATE_DESC' && styles.chipTextActive]}>Mới nhất</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.filterChip, sortOption === 'DATE_ASC' && styles.chipActive]} onPress={() => setSortOption('DATE_ASC')}>
-                <Text style={[styles.chipText, sortOption === 'DATE_ASC' && styles.chipTextActive]}>Cũ nhất</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.filterChip, sortOption === 'AMOUNT_DESC' && styles.chipActive]} onPress={() => setSortOption('AMOUNT_DESC')}>
-                <Text style={[styles.chipText, sortOption === 'AMOUNT_DESC' && styles.chipTextActive]}>Tiền cao nhất</Text>
-            </TouchableOpacity>
-          </View>
-
-          <Text style={styles.filterLabel}>Người trả tiền</Text>
-          <ScrollView style={{maxHeight: 150}}>
-            <TouchableOpacity style={styles.rowFilter} onPress={() => setFilterPayer(null)}>
-                <Ionicons name={filterPayer === null ? "radio-button-on" : "radio-button-off"} size={20} color={APP_COLOR.ORANGE} />
-                <Text style={styles.rowText}>Tất cả</Text>
-            </TouchableOpacity>
-            {members?.map(m => {
-                const memberId = getMemberId(m);
-                return (
-                    <TouchableOpacity key={memberId || m.id} style={styles.rowFilter} onPress={() => memberId && setFilterPayer(memberId)}>
-                        <Ionicons name={(filterPayer === memberId && memberId) ? "radio-button-on" : "radio-button-off"} size={20} color={APP_COLOR.ORANGE} />
-                        <Text style={styles.rowText}>{getMemberName(m)}</Text>
-                    </TouchableOpacity>
-                );
-            })}
-          </ScrollView>
-
-          {/* BUTTONS: Reset & Apply */}
-          <View style={styles.modalFooter}>
-             <TouchableOpacity 
-                style={styles.resetButton}
-                onPress={handleResetFilter}
-             >
-                <Text style={styles.resetButtonText}>Đặt lại</Text>
-             </TouchableOpacity>
-             <TouchableOpacity 
-                style={styles.applyButton}
-                onPress={() => setShowFilterModal(false)}
-             >
-                <Text style={styles.applyButtonText}>Áp dụng</Text>
-             </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-    </Modal>
-  );
->>>>>>> 22b97af922afabf910465e465b77df16d834ff42
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"} keyboardVerticalOffset={90}>
