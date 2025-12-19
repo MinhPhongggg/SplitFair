@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "828370882786",
+    "project_id": "oauth2-4bf9d",
+    "storage_bucket": "oauth2-4bf9d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:828370882786:android:fd179b486c69071e2e0ebb",
+        "android_client_info": {
+          "package_name": "com.splitfair.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "828370882786-ls2u7tq2vdrrllrkkvb85ce366viu3fu.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.splitfair.app",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "828370882786-47s5klu53mt7v165hp8vkhtd5i5pm8p3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAT_3obMMaZPXjBQ1S-4V20hLEMe_5quq0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "828370882786-47s5klu53mt7v165hp8vkhtd5i5pm8p3.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "828370882786-7ao74rjhdme6dpniqgf6su99a3i4rv2v.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.splitfair.app"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
