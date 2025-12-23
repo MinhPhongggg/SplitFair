@@ -11,7 +11,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: "white",
   },
 });
 const LoadingOverlay = (props: IProps) => {
