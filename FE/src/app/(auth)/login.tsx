@@ -9,7 +9,7 @@ import {
   StatusBar,
   TextInput,
   TouchableOpacity,
-  Dimensions
+  Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Link, router } from "expo-router";
@@ -21,17 +21,18 @@ import { APP_COLOR } from "@/utils/constant";
 import { loginAPI } from "@/utils/api";
 import { useCurrentApp } from "@/context/app.context";
 import { useToast } from "@/context/toast.context";
+import SocialButton from "@/component/button/social.button";
 
 const { width } = Dimensions.get("window");
 
 // Custom Input Component for Login Screen to match the design
-const LoginInput = ({ 
-  icon, 
-  placeholder, 
-  value, 
-  onChangeText, 
-  secureTextEntry, 
-  keyboardType 
+const LoginInput = ({
+  icon,
+  placeholder,
+  value,
+  onChangeText,
+  secureTextEntry,
+  keyboardType,
 }: any) => {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
@@ -50,14 +51,14 @@ const LoginInput = ({
         keyboardType={keyboardType}
       />
       {secureTextEntry && (
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.eyeIcon}
           onPress={() => setIsPasswordVisible(!isPasswordVisible)}
         >
-          <FontAwesome5 
-            name={isPasswordVisible ? "eye" : "eye-slash"} 
-            size={15} 
-            color="#999" 
+          <FontAwesome5
+            name={isPasswordVisible ? "eye" : "eye-slash"}
+            size={15}
+            color="#999"
           />
         </TouchableOpacity>
       )}
@@ -85,7 +86,11 @@ const LoginPage = () => {
       if (res?.token) {
         await AsyncStorage.setItem("token", res.token);
         setAppState({ ...res, email });
-        showToast("success", "Chào mừng trở lại", `Chào mừng ${res.userName || email} đã trở lại!`);
+        showToast(
+          "success",
+          "Chào mừng trở lại",
+          `Chào mừng ${res.userName || email} đã trở lại!`
+        );
         router.replace("/(tabs)");
       } else {
         showToast("error", "Đăng nhập thất bại", "Sai email hoặc mật khẩu");
@@ -100,13 +105,13 @@ const LoginPage = () => {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={APP_COLOR.ORANGE} />
-      
+
       {/* Header Section with Curve */}
       <LinearGradient
-        colors={[APP_COLOR.ORANGE, '#FF8C42']}
+        colors={[APP_COLOR.ORANGE, "#FF8C42"]}
         style={styles.headerGradient}
       >
-        <SafeAreaView edges={['top']} style={styles.headerContent}>
+        <SafeAreaView edges={["top"]} style={styles.headerContent}>
           <View style={styles.logoContainer}>
             <FontAwesome5 name="money-bill-wave" size={50} color="#fff" />
             <Text style={styles.appName}>SplitFair</Text>
@@ -122,7 +127,7 @@ const LoginPage = () => {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
       >
-        <ScrollView 
+        <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
@@ -147,7 +152,7 @@ const LoginPage = () => {
               <Text style={styles.forgotPasswordText}>Quên mật khẩu?</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.loginButton}
               onPress={handleLogin}
               disabled={loading}
@@ -163,6 +168,7 @@ const LoginPage = () => {
                 <Text style={styles.signupText}>Đăng ký ngay</Text>
               </Link>
             </View>
+            <SocialButton title=" đăng nhập với " />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -179,8 +185,8 @@ const styles = StyleSheet.create({
     height: 300,
     borderBottomLeftRadius: 60,
     borderBottomRightRadius: 60,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingBottom: 30,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
@@ -189,12 +195,12 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   headerContent: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '100%',
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
   },
   logoContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 15,
   },
   appName: {
@@ -208,7 +214,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "rgba(255,255,255,0.9)",
     fontWeight: "500",
-    textAlign: 'center',
+    textAlign: "center",
   },
   scrollContent: {
     flexGrow: 1,
@@ -216,12 +222,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 30,
   },
   formContainer: {
-    width: '100%',
+    width: "100%",
   },
   inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
     borderRadius: 30,
     marginBottom: 20,
     paddingHorizontal: 20,
@@ -232,38 +238,38 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     elevation: 2,
     borderWidth: 1,
-    borderColor: '#f0f0f0',
+    borderColor: "#f0f0f0",
   },
   inputIcon: {
     marginRight: 15,
     width: 20,
-    alignItems: 'center',
+    alignItems: "center",
   },
   input: {
     flex: 1,
-    height: '100%',
+    height: "100%",
     fontSize: 16,
-    color: '#333',
+    color: "#333",
   },
   eyeIcon: {
     padding: 5,
   },
   forgotPassword: {
-    alignSelf: 'flex-end',
+    alignSelf: "flex-end",
     marginBottom: 30,
     marginRight: 10,
   },
   forgotPasswordText: {
     color: APP_COLOR.ORANGE,
-    fontWeight: '600',
+    fontWeight: "600",
     fontSize: 14,
   },
   loginButton: {
     backgroundColor: APP_COLOR.ORANGE,
     borderRadius: 30,
     height: 55,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     shadowColor: APP_COLOR.ORANGE,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
@@ -272,22 +278,22 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   loginButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
   },
   footerText: {
-    color: '#666',
+    color: "#666",
     fontSize: 15,
   },
   signupText: {
     color: APP_COLOR.ORANGE,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     fontSize: 15,
   },
 });

@@ -26,6 +26,7 @@ import { useToast } from '@/context/toast.context';
 import ConfirmModal from '@/component/ConfirmModal';
 import Avatar from '@/component/Avatar';
 import { AVATAR_PRESETS, PRESET_KEYS } from '@/utils/avatar-presets';
+import Header from '@/component/Header';
 
 // --- Components ---
 
@@ -379,7 +380,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     backgroundColor: 'white',
-    paddingTop: 60, // Safe area top
   },
   profileInfo: {
     flex: 1, marginLeft: 15,

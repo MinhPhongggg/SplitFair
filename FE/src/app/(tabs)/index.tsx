@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,8 @@ import {
   Image,
   Dimensions,
   RefreshControl,
+  Alert,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useCurrentApp } from '@/context/app.context';
@@ -17,6 +19,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useGetGroups } from '@/api/hooks';
 import Avatar from '@/component/Avatar';
+import { SelectionModal } from '@/component/expense/SelectionModal';
+import { JoinGroupModal } from '@/component/group/JoinGroupModal';
 
 const { width } = Dimensions.get('window');
 
@@ -33,6 +37,25 @@ const FeatureCard = ({ icon, title, description, color, onPress }: any) => (
 const HomeTab = () => {
   const { appState } = useCurrentApp();
   const { data: groups, isLoading, refetch } = useGetGroups();
+  const [showGroupModal, setShowGroupModal] = useState(false);
+  const [showNoGroupModal, setShowNoGroupModal] = useState(false);
+  const [showJoinModal, setShowJoinModal] = useState(false);
+
+  const handleCreateBillPress = () => {
+    if (!groups || groups.length === 0) {
+        setShowNoGroupModal(true);
+        return;
+    }
+    setShowGroupModal(true);
+  };
+
+  const handleGroupSelect = (groupId: string) => {
+    setShowGroupModal(false);
+    router.push({
+        pathname: '/(tabs)/groups/create-expense',
+        params: { groupId }
+    });
+  };
 
   // Lấy 3 nhóm gần nhất (giả sử API trả về theo thứ tự hoặc sort lại)
   const recentGroups = groups ? groups.slice(0, 3) : [];
@@ -81,32 +104,25 @@ const HomeTab = () => {
         <Text style={styles.sectionTitle}>Tính năng nổi bật</Text>
         <View style={styles.gridContainer}>
           <FeatureCard
+            icon="receipt"
+            title="Tạo Bill"
+            description="Thêm chi tiêu mới vào nhóm."
+            color="#FF5722"
+            onPress={handleCreateBillPress}
+          />
+          <FeatureCard
             icon="people"
             title="Tạo Nhóm"
             description="Tạo nhóm cho chuyến đi, nhà trọ hoặc ăn uống."
             color="#4CAF50"
-            onPress={() => router.push('/(tabs)/groups')}
-          />
-          <FeatureCard
-            icon="receipt"
-            title="Thêm Hóa Đơn"
-            description="Ghi lại chi tiêu và chọn người chia tiền."
-            color="#2196F3"
-            onPress={() => router.push('/(tabs)/groups')}
+            onPress={() => router.push('/create-group')}
           />
           <FeatureCard
             icon="pie-chart"
             title="Thống Kê"
-            description="Xem biểu đồ chi tiêu và công nợ chi tiết."
+            description="Xem biểu đồ chi tiêu theo tuần, tháng."
             color="#9C27B0"
-            onPress={() => router.push('/(tabs)/groups')}
-          />
-          <FeatureCard
-            icon="notifications"
-            title="Nhắc Nợ"
-            description="Gửi thông báo nhắc nhở thanh toán dễ dàng."
-            color="#FF9800"
-            onPress={() => {}}
+            onPress={() => router.push('/statistics')}
           />
         </View>
 
@@ -145,13 +161,69 @@ const HomeTab = () => {
         ) : (
             <View style={styles.emptyState}>
                 <Text style={styles.emptyText}>Bạn chưa tham gia nhóm nào.</Text>
-                <TouchableOpacity onPress={() => router.push('/(tabs)/groups')}>
+                <TouchableOpacity onPress={() => router.push('/create-group')}>
                     <Text style={styles.createLink}>Tạo nhóm mới ngay</Text>
                 </TouchableOpacity>
             </View>
         )}
 
       </ScrollView>
+
+      <SelectionModal
+        visible={showGroupModal}
+        onClose={() => setShowGroupModal(false)}
+        title="Chọn nhóm"
+        options={groups?.map(g => ({ label: g.groupName, value: g.id })) || []}
+        onSelect={handleGroupSelect}
+        selectedValue=""
+      />
+
+      <Modal
+        transparent
+        visible={showNoGroupModal}
+        animationType="fade"
+        onRequestClose={() => setShowNoGroupModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalIconContainer}>
+               <Ionicons name="people-circle-outline" size={60} color={APP_COLOR.ORANGE} />
+            </View>
+            <Text style={styles.modalTitle}>Chưa có nhóm</Text>
+            <Text style={styles.modalMessage}>
+              Bạn cần tham gia hoặc tạo một nhóm để bắt đầu thêm chi tiêu.
+            </Text>
+            
+            <View style={styles.modalActions}>
+               <TouchableOpacity 
+                  style={[styles.modalButton, styles.modalButtonPrimary]}
+                  onPress={() => { setShowNoGroupModal(false); router.push('/create-group'); }}
+               >
+                  <Text style={styles.modalButtonTextPrimary}>Tạo nhóm mới</Text>
+               </TouchableOpacity>
+
+               <TouchableOpacity 
+                  style={[styles.modalButton, styles.modalButtonSecondary]}
+                  onPress={() => { setShowNoGroupModal(false); setShowJoinModal(true); }}
+               >
+                  <Text style={styles.modalButtonTextSecondary}>Tham gia nhóm</Text>
+               </TouchableOpacity>
+
+               <TouchableOpacity 
+                  style={styles.modalButtonTextOnly}
+                  onPress={() => setShowNoGroupModal(false)}
+               >
+                  <Text style={styles.modalButtonTextCancel}>Để sau</Text>
+               </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      <JoinGroupModal 
+        visible={showJoinModal} 
+        onClose={() => setShowJoinModal(false)} 
+      />
     </SafeAreaView>
   );
 };
@@ -339,6 +411,92 @@ const styles = StyleSheet.create({
   createLink: {
       color: APP_COLOR.ORANGE,
       fontWeight: 'bold',
+  },
+
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContainer: {
+    backgroundColor: 'white',
+    borderRadius: 24,
+    padding: 25,
+    width: '100%',
+    maxWidth: 340,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  modalIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#FFF0E0',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  modalMessage: {
+    fontSize: 15,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 25,
+    lineHeight: 22,
+    paddingHorizontal: 10,
+  },
+  modalActions: {
+    width: '100%',
+    gap: 12,
+  },
+  modalButton: {
+    paddingVertical: 14,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalButtonPrimary: {
+    backgroundColor: APP_COLOR.ORANGE,
+    shadowColor: APP_COLOR.ORANGE,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  modalButtonSecondary: {
+    backgroundColor: '#F5F5F5',
+  },
+  modalButtonTextPrimary: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  modalButtonTextSecondary: {
+    color: '#333',
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  modalButtonTextOnly: {
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
+  modalButtonTextCancel: {
+    color: '#888',
+    fontSize: 15,
+    fontWeight: '500',
   },
 });
 

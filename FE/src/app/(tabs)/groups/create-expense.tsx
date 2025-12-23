@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, ScrollView, StatusBar, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, ScrollView, StatusBar, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { APP_COLOR } from '@/utils/constant';
+import { pickImage, takePhoto, scanReceipt } from '@/api/ocr';
 
 // 1. Import Hook
 import { useExpenseCreation } from '@/hooks/useExpenseCreation';
@@ -20,6 +21,48 @@ const CreateExpenseScreen = () => {
   // Sử dụng custom hook
   const { members, isLoadingMembers, isPending, form, setters, logic, calc, helpers } = useExpenseCreation(groupId, billId);
   const [showPayerModal, setShowPayerModal] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
+
+  const handleScan = async () => {
+    Alert.alert(
+      "Quét hóa đơn",
+      "Chọn phương thức",
+      [
+        {
+          text: "Chụp ảnh",
+          onPress: async () => {
+            const uri = await takePhoto();
+            if (uri) processImage(uri);
+          }
+        },
+        {
+          text: "Chọn từ thư viện",
+          onPress: async () => {
+            const uri = await pickImage();
+            if (uri) processImage(uri);
+          }
+        },
+        { text: "Hủy", style: "cancel" }
+      ]
+    );
+  };
+
+  const processImage = async (uri: string) => {
+    setIsScanning(true);
+    try {
+      const amount = await scanReceipt(uri);
+      if (amount) {
+        setters.setAmount(amount);
+        Alert.alert("Thành công", `Đã quét được số tiền: ${parseInt(amount).toLocaleString('vi-VN')}đ`);
+      } else {
+        Alert.alert("Thất bại", "Không tìm thấy số tiền trong hóa đơn");
+      }
+    } catch (error) {
+      Alert.alert("Lỗi", "Có lỗi xảy ra khi quét hóa đơn");
+    } finally {
+      setIsScanning(false);
+    }
+  };
 
   if (isLoadingMembers) {
     return <ActivityIndicator size="large" color={APP_COLOR.ORANGE} style={styles.center} />;
@@ -62,7 +105,10 @@ const CreateExpenseScreen = () => {
              onPressPayer={() => setShowPayerModal(true)}
              amount={form.amount}
              setAmount={setters.setAmount}
+             onScan={handleScan}
           />
+
+          {isScanning && <ActivityIndicator size="large" color={APP_COLOR.ORANGE} style={{ marginVertical: 10 }} />}
 
           {/* Split Method */}
           <SplitMethodTabs current={form.splitMethod} onChange={logic.changeMethod} />

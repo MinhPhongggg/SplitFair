@@ -9,7 +9,7 @@ import {
   StatusBar,
   TextInput,
   TouchableOpacity,
-  Dimensions
+  Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Link, router } from "expo-router";
@@ -19,17 +19,18 @@ import { FontAwesome5 } from "@expo/vector-icons";
 import { registerAPI } from "@/utils/api";
 import { APP_COLOR } from "@/utils/constant";
 import { useToast } from "@/context/toast.context";
+import SocialButton from "@/component/button/social.button";
 
 const { width } = Dimensions.get("window");
 
 // Custom Input Component matching Login design
-const SignupInput = ({ 
-  icon, 
-  placeholder, 
-  value, 
-  onChangeText, 
-  secureTextEntry, 
-  keyboardType 
+const SignupInput = ({
+  icon,
+  placeholder,
+  value,
+  onChangeText,
+  secureTextEntry,
+  keyboardType,
 }: any) => {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
@@ -48,14 +49,14 @@ const SignupInput = ({
         keyboardType={keyboardType}
       />
       {secureTextEntry && (
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.eyeIcon}
           onPress={() => setIsPasswordVisible(!isPasswordVisible)}
         >
-          <FontAwesome5 
-            name={isPasswordVisible ? "eye" : "eye-slash"} 
-            size={15} 
-            color="#999" 
+          <FontAwesome5
+            name={isPasswordVisible ? "eye" : "eye-slash"}
+            size={15}
+            color="#999"
           />
         </TouchableOpacity>
       )}
@@ -82,7 +83,11 @@ const SignupPage = () => {
       setLoading(false);
 
       if (res?.token) {
-        showToast("success", "Thành công", "Đăng ký thành công, vui lòng đăng nhập!");
+        showToast(
+          "success",
+          "Thành công",
+          "Đăng ký thành công, vui lòng đăng nhập!"
+        );
         router.replace("/(auth)/login");
       } else {
         showToast("error", "Đăng ký thất bại", "Email có thể đã được sử dụng");
@@ -97,13 +102,13 @@ const SignupPage = () => {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={APP_COLOR.ORANGE} />
-      
+
       {/* Header Section with Curve */}
       <LinearGradient
-        colors={[APP_COLOR.ORANGE, '#FF8C42']}
+        colors={[APP_COLOR.ORANGE, "#FF8C42"]}
         style={styles.headerGradient}
       >
-        <SafeAreaView edges={['top']} style={styles.headerContent}>
+        <SafeAreaView edges={["top"]} style={styles.headerContent}>
           <View style={styles.logoContainer}>
             <FontAwesome5 name="money-bill-wave" size={50} color="#fff" />
             <Text style={styles.appName}>SplitFair</Text>
@@ -119,7 +124,7 @@ const SignupPage = () => {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
       >
-        <ScrollView 
+        <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
@@ -149,7 +154,7 @@ const SignupPage = () => {
 
             <View style={{ height: 20 }} />
 
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.signupButton}
               onPress={handleSignup}
               disabled={loading}
@@ -165,6 +170,7 @@ const SignupPage = () => {
                 <Text style={styles.loginText}>Đăng nhập ngay</Text>
               </Link>
             </View>
+            <SocialButton title="Đăng ký với" />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -181,8 +187,8 @@ const styles = StyleSheet.create({
     height: 280, // Slightly shorter than login to fit more fields if needed
     borderBottomLeftRadius: 60,
     borderBottomRightRadius: 60,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingBottom: 30,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
@@ -191,12 +197,12 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   headerContent: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '100%',
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
   },
   logoContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 15,
   },
   appName: {
@@ -210,7 +216,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "rgba(255,255,255,0.9)",
     fontWeight: "500",
-    textAlign: 'center',
+    textAlign: "center",
   },
   scrollContent: {
     flexGrow: 1,
@@ -219,12 +225,12 @@ const styles = StyleSheet.create({
     paddingBottom: 30,
   },
   formContainer: {
-    width: '100%',
+    width: "100%",
   },
   inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
     borderRadius: 30,
     marginBottom: 20,
     paddingHorizontal: 20,
@@ -235,18 +241,18 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     elevation: 2,
     borderWidth: 1,
-    borderColor: '#f0f0f0',
+    borderColor: "#f0f0f0",
   },
   inputIcon: {
     marginRight: 15,
     width: 20,
-    alignItems: 'center',
+    alignItems: "center",
   },
   input: {
     flex: 1,
-    height: '100%',
+    height: "100%",
     fontSize: 16,
-    color: '#333',
+    color: "#333",
   },
   eyeIcon: {
     padding: 5,
@@ -255,8 +261,8 @@ const styles = StyleSheet.create({
     backgroundColor: APP_COLOR.ORANGE,
     borderRadius: 30,
     height: 55,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     shadowColor: APP_COLOR.ORANGE,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
@@ -265,22 +271,22 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   signupButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
   },
   footerText: {
-    color: '#666',
+    color: "#666",
     fontSize: 15,
   },
   loginText: {
     color: APP_COLOR.ORANGE,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     fontSize: 15,
   },
 });

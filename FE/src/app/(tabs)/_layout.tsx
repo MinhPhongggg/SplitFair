@@ -111,7 +111,8 @@ const TabLayout = () => {
         name="groups"
         options={{
           tabBarLabel: "Nhóm",
-        }}
+          unmountOnBlur: true,
+        } as any}
       />
       
       <Tabs.Screen

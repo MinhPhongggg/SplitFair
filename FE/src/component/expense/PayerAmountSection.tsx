@@ -7,9 +7,10 @@ import { APP_COLOR } from '@/utils/constant';
 interface Props {
   payerName: string; payerAvatar?: string; onPressPayer: () => void;
   amount: string; setAmount: (val: string) => void;
+  onScan?: () => void;
 }
 
-export const PayerAmountSection = ({ payerName, payerAvatar, onPressPayer, amount, setAmount }: Props) => (
+export const PayerAmountSection = ({ payerName, payerAvatar, onPressPayer, amount, setAmount, onScan }: Props) => (
   <View style={styles.payerAmountSection}>
     <View style={styles.payerRow}>
       <Text style={styles.sectionLabel}>Người trả tiền</Text>
@@ -20,9 +21,27 @@ export const PayerAmountSection = ({ payerName, payerAvatar, onPressPayer, amoun
       </TouchableOpacity>
     </View>
     <View style={styles.amountRow}>
-      <TextInput style={styles.largeAmountInput} value={amount} onChangeText={setAmount} placeholder="0" keyboardType="numeric" placeholderTextColor="#ccc" />
+      <TextInput 
+        style={styles.largeAmountInput} 
+        value={amount ? parseInt(amount).toLocaleString('vi-VN') : ''} 
+        onChangeText={(text) => {
+          const cleanValue = text.replace(/\./g, '');
+          if (/^\d*$/.test(cleanValue)) {
+            setAmount(cleanValue);
+          }
+        }} 
+        placeholder="0" 
+        keyboardType="numeric" 
+        placeholderTextColor="#ccc" 
+      />
       <Text style={styles.currencySymbol}>₫</Text>
     </View>
+    {onScan && (
+        <TouchableOpacity style={styles.scanButton} onPress={onScan}>
+            <Ionicons name="scan-outline" size={20} color={APP_COLOR.ORANGE} />
+            <Text style={styles.scanText}>Quét hóa đơn</Text>
+        </TouchableOpacity>
+    )}
   </View>
 );
 
@@ -35,4 +54,6 @@ const styles = StyleSheet.create({
   amountRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 10 },
   currencySymbol: { fontSize: 30, fontWeight: 'bold', color: '#333', marginRight: 5 },
   largeAmountInput: { fontSize: 40, fontWeight: 'bold', color: APP_COLOR.ORANGE, minWidth: 100, textAlign: 'center' },
+  scanButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 15, padding: 8, backgroundColor: '#FFF5F0', borderRadius: 8, alignSelf: 'center' },
+  scanText: { marginLeft: 6, color: APP_COLOR.ORANGE, fontWeight: '600', fontSize: 14 },
 });

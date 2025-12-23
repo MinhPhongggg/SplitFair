@@ -3,51 +3,62 @@ import { View, ActivityIndicator } from "react-native";
 import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as SplashScreen from "expo-splash-screen";
+import { configureGoogleSignIn } from "@/utils/google.config";
 import { useCurrentApp } from "@/context/app.context";
 import { getAccountAPI } from "@/utils/api";
 import { APP_COLOR } from "@/utils/constant";
 
-// Giữ splash screen cho đến khi check token xong
+// Giữ splash screen cho tới khi check auth xong
 SplashScreen.preventAutoHideAsync();
 
 const RootPage = () => {
   const { setAppState } = useCurrentApp();
+  useEffect(() => {
+    configureGoogleSignIn();
+  }, []);
 
   useEffect(() => {
-    async function prepare() {
+    const bootstrapAsync = async () => {
       try {
         const token = await AsyncStorage.getItem("token");
+
         if (!token) {
           router.replace("/(auth)/welcome");
           return;
         }
 
-        const res = await getAccountAPI(); // BE trả về thẳng { token, userName, role }
-        
-        // Nếu có token (từ login/register) hoặc có email (từ getAccount)
-        if (res?.token || res?.email) {
-          // Nếu res không có token (trường hợp getAccount), ta lấy token từ AsyncStorage
-          const finalState = {
+        const res = await getAccountAPI();
+
+        if (res?.email || res?.userName) {
+          setAppState({
             ...res,
             token: res.token || token,
-          };
-          setAppState(finalState); // lưu state
-          router.replace("/(tabs)"); // chuyển vào tab chính
+          });
+
+          router.replace("/(tabs)");
         } else {
           router.replace("/(auth)/welcome");
         }
       } catch (error) {
-        console.warn(error);
+        console.warn("Auth bootstrap error:", error);
         router.replace("/(auth)/welcome");
       } finally {
         await SplashScreen.hideAsync();
       }
-    }
-    prepare();
+    };
+
+    bootstrapAsync();
   }, []);
 
   return (
-    <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "white" }}>
+    <View
+      style={{
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "white",
+      }}
+    >
       <ActivityIndicator size="large" color={APP_COLOR.ORANGE} />
     </View>
   );

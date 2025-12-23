@@ -63,7 +63,7 @@ export const useExpenseCreation = (groupId: string, billId: string) => {
       let val = 0;
       switch (splitMethod) {
         case 'EQUAL':
-           const split = Math.floor((totalAmountNum / count) * 100) / 100;
+           const split = Math.floor(totalAmountNum / count);
            const idx = participating.findIndex(m => m.userId === input.userId);
            val = (idx === count - 1) ? (totalAmountNum - calcTotal) : split;
            break;
@@ -91,12 +91,73 @@ export const useExpenseCreation = (groupId: string, billId: string) => {
   };
 
   const updateInput = (uid: string, val: string) => {
-      setSplitInputs(prev => prev.map(i => i.userId === uid ? { ...i, value: val } : i));
+      if (splitMethod === 'PERCENTAGE') {
+          // Allow empty string for clearing input
+          if (val === '') {
+             setSplitInputs(prev => prev.map(i => i.userId === uid ? { ...i, value: '' } : i));
+             return;
+          }
+
+          const newVal = parseFloat(val);
+          if (isNaN(newVal)) return; 
+          if (newVal > 100) return; 
+
+          setSplitInputs(prev => {
+              const otherChecked = prev.filter(i => i.isChecked && i.userId !== uid);
+              const remaining = 100 - newVal;
+              
+              if (otherChecked.length === 0) return prev.map(i => i.userId === uid ? { ...i, value: val } : i);
+
+              const share = Math.floor((remaining / otherChecked.length) * 100) / 100;
+              
+              const newInputs = prev.map(i => {
+                  if (i.userId === uid) return { ...i, value: val };
+                  if (i.isChecked) {
+                      return { ...i, value: share.toString() };
+                  }
+                  return i;
+              });
+              return newInputs;
+          });
+      } else if (splitMethod === 'EXACT') {
+          // Allow empty string
+          if (val === '') {
+             setSplitInputs(prev => prev.map(i => i.userId === uid ? { ...i, value: '' } : i));
+             return;
+          }
+
+          const newVal = parseFloat(val);
+          if (isNaN(newVal)) return;
+          
+          const totalAmountNum = parseFloat(amount) || 0;
+          if (newVal > totalAmountNum) return;
+
+          setSplitInputs(prev => {
+              const otherChecked = prev.filter(i => i.isChecked && i.userId !== uid);
+              const remaining = totalAmountNum - newVal;
+              
+              if (otherChecked.length === 0) return prev.map(i => i.userId === uid ? { ...i, value: val } : i);
+
+              const share = Math.floor(remaining / otherChecked.length);
+              
+              const newInputs = prev.map(i => {
+                  if (i.userId === uid) return { ...i, value: val };
+                  if (i.isChecked) {
+                      return { ...i, value: share.toString() };
+                  }
+                  return i;
+              });
+              return newInputs;
+          });
+      } else {
+          setSplitInputs(prev => prev.map(i => i.userId === uid ? { ...i, value: val } : i));
+      }
   };
 
   const changeMethod = (method: SplitMethod) => {
       setSplitMethod(method);
-      setSplitInputs(prev => prev.map(i => ({ ...i, value: method === 'SHARES' ? '1' : (method === 'PERCENTAGE' ? '0' : i.value) })));
+      // Reset values to empty for all manual input methods to avoid '0' or '1' default
+      setSplitInputs(prev => prev.map(i => ({ ...i, value: '' })));
   };
 
   const submit = () => {
@@ -115,7 +176,13 @@ export const useExpenseCreation = (groupId: string, billId: string) => {
                  percentage: splitMethod === 'PERCENTAGE' ? (parseFloat(s.value)||0) : 0
              }));
              saveShares({ expenseId: newExp.id, totalAmount: newExp.amount, paidBy: newExp.paidBy, shares: sharesApi, currency: 'VND' }, {
-                 onSuccess: () => { showToast('success', 'Thành công', 'Đã tạo chi tiêu.'); router.back(); },
+                 onSuccess: () => { 
+                     showToast('success', 'Thành công', 'Đã tạo chi tiêu.'); 
+                     router.replace({
+                        pathname: '/(tabs)/groups/expense/[expenseId]',
+                        params: { expenseId: newExp.id }
+                     });
+                 },
                  onError: (e: any) => showToast('error', 'Lỗi lưu', e.message)
              });
          },

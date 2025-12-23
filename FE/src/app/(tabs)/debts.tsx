@@ -219,7 +219,7 @@ const DebtScreen = () => {
                   <View style={styles.verticalDivider} />
                   <View style={styles.overviewItem}>
                       <Text style={[styles.overviewValue, styles.textGreen]}>{overview.rec.toLocaleString('vi-VN')} đ</Text>
-                      <Text style={styles.overviewLabel}>Sắp nhận</Text>
+                      <Text style={styles.overviewLabel}>Sẽ nhận</Text>
                   </View>
               </View>
           </View>
@@ -407,7 +407,7 @@ const DebtScreen = () => {
                         onPress={() => setActiveTab('PAYABLES')}
                     >
                         <Text style={[styles.tabText, activeTab === 'PAYABLES' && styles.activeTabText]}>
-                            Cần trả ({groupedPayables.length})
+                            Phải trả ({groupedPayables.length})
                         </Text>
                     </TouchableOpacity>
                     <TouchableOpacity 
@@ -415,7 +415,7 @@ const DebtScreen = () => {
                         onPress={() => setActiveTab('RECEIVABLES')}
                     >
                         <Text style={[styles.tabText, activeTab === 'RECEIVABLES' && styles.activeTabText]}>
-                            Sắp nhận ({groupedReceivables.length})
+                            Sẽ nhận ({groupedReceivables.length})
                         </Text>
                     </TouchableOpacity>
                   </View>
