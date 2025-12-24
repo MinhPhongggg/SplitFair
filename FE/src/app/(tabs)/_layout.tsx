@@ -11,8 +11,8 @@ import { Notification } from "@/types/notification.types";
 
 const TabLayout = () => {
   const { data: notifications } = useGetNotifications();
-  const unreadCount = Array.isArray(notifications) 
-    ? notifications.filter((n: Notification) => !n.isRead).length 
+  const unreadCount = Array.isArray(notifications)
+    ? notifications.filter((n: Notification) => !n.isRead).length
     : 0;
 
   const getIcons = (routeName: string, focused: boolean, size: number) => {
@@ -34,7 +34,7 @@ const TabLayout = () => {
         />
       );
     }
-    
+
     // 👇 THÊM ICON CHO TAB CÔNG NỢ
     if (routeName === "debts") {
       return (
@@ -45,7 +45,7 @@ const TabLayout = () => {
         />
       );
     }
-   
+
     if (routeName === "notification") {
       return (
         <View>
@@ -57,15 +57,15 @@ const TabLayout = () => {
           {unreadCount > 0 && (
             <View
               style={{
-                position: 'absolute',
+                position: "absolute",
                 right: 0,
                 top: 0,
-                backgroundColor: 'red',
+                backgroundColor: "red",
                 borderRadius: 5,
                 width: 10,
                 height: 10,
                 borderWidth: 1,
-                borderColor: 'white'
+                borderColor: "white",
               }}
             />
           )}
@@ -109,11 +109,14 @@ const TabLayout = () => {
       />
       <Tabs.Screen
         name="groups"
-        options={{
-          tabBarLabel: "Nhóm",
-        }}
+        options={
+          {
+            tabBarLabel: "Nhóm",
+            unmountOnBlur: true,
+          } as any
+        }
       />
-      
+
       <Tabs.Screen
         name="debts"
         options={{
