@@ -1,5 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { View, Text, Image, StyleSheet, Animated, Dimensions } from "react-native";
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  Animated,
+  Dimensions,
+} from "react-native";
 import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as SplashScreen from "expo-splash-screen";
@@ -11,7 +18,7 @@ import { APP_COLOR } from "@/utils/constant";
 // Giữ splash screen cho tới khi check auth xong
 SplashScreen.preventAutoHideAsync();
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 
 const RootPage = () => {
   const { setAppState } = useCurrentApp();
@@ -20,7 +27,7 @@ const RootPage = () => {
 
   useEffect(() => {
     configureGoogleSignIn();
-    
+
     const listenerId = progress.addListener(({ value }) => {
       setProgressPercent(Math.floor(value));
     });
@@ -79,45 +86,43 @@ const RootPage = () => {
   });
 
   return (
-    <View style={styles.container}>
-      <View style={styles.contentContainer}>
-        {/* Logo Section */}
-        <View style={styles.logoContainer}>
-          <View style={styles.logoCircle}>
-             <Image
-                source={require("@/assets/logo-loading.png")}
-                style={styles.logoImage}
-                resizeMode="contain"
-              />
-          </View>
-        </View>
+    <></>
+    // <View style={styles.container}>
+    //   <View style={styles.contentContainer}>
+    //     {/* Logo Section */}
+    //     <View style={styles.logoContainer}>
+    //       <View style={styles.logoCircle}>
+    //         <Image
+    //           source={require("@/assets/logo-loading.png")}
+    //           style={styles.logoImage}
+    //           resizeMode="contain"
+    //         />
+    //       </View>
+    //     </View>
 
-        {/* App Name */}
-        <Text style={styles.appName}>SplitFair</Text>
-        <Text style={styles.tagline}>Bill splitting made simple</Text>
+    //     {/* App Name */}
+    //     <Text style={styles.appName}>SplitFair</Text>
+    //     <Text style={styles.tagline}>Bill splitting made simple</Text>
 
-        {/* Progress Section */}
-        <View style={styles.progressContainer}>
-          <View style={styles.progressBarBg}>
-            <Animated.View 
-              style={[
-                styles.progressBarFill, 
-                { width: widthInterpolated }
-              ]} 
-            />
-          </View>
-          <View style={styles.progressTextRow}>
-            <Text style={styles.progressLabel}>LOADING...</Text>
-            <Text style={styles.progressPercent}>{progressPercent}%</Text>
-          </View>
-        </View>
-      </View>
+    //     {/* Progress Section */}
+    //     <View style={styles.progressContainer}>
+    //       <View style={styles.progressBarBg}>
+    //         <Animated.View
+    //           style={[styles.progressBarFill, { width: widthInterpolated }]}
+    //         />
+    //       </View>
+    //       <View style={styles.progressTextRow}>
+    //         <Text style={styles.progressLabel}>LOADING...</Text>
+    //         <Text style={styles.progressPercent}>{progressPercent}%</Text>
+    //       </View>
+    //     </View>
+    //   </View>
 
-      {/* Footer */}
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>SECURE CONNECTION</Text>
-      </View>
-    </View>
+    //   {/* Footer */}
+    //   <View style={styles.footer}>
+    //     <Text style={styles.footerText}>SECURE CONNECTION</Text>
+    //   </View>
+    // </View>
   );
 };
 
@@ -132,7 +137,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    width: '100%',
+    width: "100%",
   },
   logoContainer: {
     marginBottom: 20,

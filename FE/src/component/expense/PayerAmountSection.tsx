@@ -1,16 +1,32 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, TextInput, StyleSheet } from 'react-native';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import Avatar from '@/component/Avatar';
-import { APP_COLOR } from '@/utils/constant';
+import React from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  TextInput,
+  StyleSheet,
+} from "react-native";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import Avatar from "@/component/Avatar";
+import { APP_COLOR } from "@/utils/constant";
 
 interface Props {
-  payerName: string; payerAvatar?: string; onPressPayer: () => void;
-  amount: string; setAmount: (val: string) => void;
+  payerName: string;
+  payerAvatar?: string;
+  onPressPayer: () => void;
+  amount: string;
+  setAmount: (val: string) => void;
   onScan?: () => void;
 }
 
-export const PayerAmountSection = ({ payerName, payerAvatar, onPressPayer, amount, setAmount, onScan }: Props) => (
+export const PayerAmountSection = ({
+  payerName,
+  payerAvatar,
+  onPressPayer,
+  amount,
+  setAmount,
+  onScan,
+}: Props) => (
   <View style={styles.payerAmountSection}>
     <View style={styles.payerRow}>
       <Text style={styles.sectionLabel}>Người trả tiền</Text>
@@ -21,39 +37,91 @@ export const PayerAmountSection = ({ payerName, payerAvatar, onPressPayer, amoun
       </TouchableOpacity>
     </View>
     <View style={styles.amountRow}>
-      <TextInput 
-        style={styles.largeAmountInput} 
-        value={amount ? parseInt(amount).toLocaleString('vi-VN') : ''} 
+      <TextInput
+        style={styles.largeAmountInput}
+        value={amount ? parseInt(amount).toLocaleString("vi-VN") : ""}
         onChangeText={(text) => {
-          const cleanValue = text.replace(/\./g, '');
+          const cleanValue = text.replace(/\./g, "");
           if (/^\d*$/.test(cleanValue)) {
             setAmount(cleanValue);
           }
-        }} 
-        placeholder="0" 
-        keyboardType="numeric" 
-        placeholderTextColor="#ccc" 
+        }}
+        placeholder="0"
+        keyboardType="numeric"
+        placeholderTextColor="#ccc"
       />
       <Text style={styles.currencySymbol}>₫</Text>
     </View>
     {onScan && (
-        <TouchableOpacity style={styles.scanButton} onPress={onScan}>
-            <Ionicons name="scan-outline" size={20} color={APP_COLOR.ORANGE} />
-            <Text style={styles.scanText}>Quét hóa đơn</Text>
-        </TouchableOpacity>
+      <TouchableOpacity style={styles.scanButton} onPress={onScan}>
+        <Ionicons name="scan-outline" size={20} color={APP_COLOR.ORANGE} />
+        <Text style={styles.scanText}>Quét hóa đơn</Text>
+      </TouchableOpacity>
     )}
   </View>
 );
 
 const styles = StyleSheet.create({
-  payerAmountSection: { padding: 20, backgroundColor: '#fff' },
-  payerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
-  sectionLabel: { fontSize: 14, color: '#888', fontWeight: '600', textTransform: 'uppercase' },
-  payerSelector: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f5f5f5', paddingVertical: 6, paddingHorizontal: 12, borderRadius: 20 },
-  payerName: { marginHorizontal: 8, fontSize: 14, fontWeight: '500', color: '#333' },
-  amountRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 10 },
-  currencySymbol: { fontSize: 30, fontWeight: 'bold', color: '#333', marginRight: 5 },
-  largeAmountInput: { fontSize: 40, fontWeight: 'bold', color: APP_COLOR.ORANGE, minWidth: 100, textAlign: 'center' },
-  scanButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 15, padding: 8, backgroundColor: '#FFF5F0', borderRadius: 8, alignSelf: 'center' },
-  scanText: { marginLeft: 6, color: APP_COLOR.ORANGE, fontWeight: '600', fontSize: 14 },
+  payerAmountSection: { padding: 20, backgroundColor: "#fff" },
+  payerRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  sectionLabel: {
+    fontSize: 14,
+    color: "#888",
+    fontWeight: "600",
+    textTransform: "uppercase",
+  },
+  payerSelector: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f5f5f5",
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+  },
+  payerName: {
+    marginHorizontal: 8,
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#333",
+  },
+  amountRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 10,
+  },
+  currencySymbol: {
+    fontSize: 30,
+    fontWeight: "bold",
+    color: "#333",
+    marginRight: 5,
+  },
+  largeAmountInput: {
+    fontSize: 40,
+    fontWeight: "bold",
+    color: APP_COLOR.ORANGE,
+    minWidth: 100,
+    textAlign: "center",
+  },
+  scanButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 15,
+    padding: 8,
+    backgroundColor: "#FFF5F0",
+    borderRadius: 8,
+    alignSelf: "center",
+  },
+  scanText: {
+    marginLeft: 6,
+    color: APP_COLOR.ORANGE,
+    fontWeight: "600",
+    fontSize: 14,
+  },
 });

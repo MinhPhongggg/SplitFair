@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   View,
   Text,
@@ -8,24 +8,24 @@ import {
   ActivityIndicator,
   StatusBar,
   Alert,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
-import { APP_COLOR } from '@/utils/constant';
-import { Group } from '@/types/group.types';
-import { useGetGroups } from '@/api/hooks';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import { useState } from 'react';
-import { useCurrentApp } from '@/context/app.context';
-import { useToast } from '@/context/toast.context';
-import Header from '@/component/Header';
-import { JoinGroupModal } from '@/component/group/JoinGroupModal';
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { router } from "expo-router";
+import { APP_COLOR } from "@/utils/constant";
+import { Group } from "@/types/group.types";
+import { useGetGroups } from "@/api/hooks";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { useState } from "react";
+import { useCurrentApp } from "@/context/app.context";
+import { useToast } from "@/context/toast.context";
+import Header from "@/component/Header";
+import { JoinGroupModal } from "@/component/group/JoinGroupModal";
 
 const GroupListScreen = () => {
   const { data: groups, isLoading, refetch } = useGetGroups();
   const { appState } = useCurrentApp();
   const { showToast } = useToast();
-  
+
   // Join Group State
   const [showJoinModal, setShowJoinModal] = useState(false);
 
@@ -48,7 +48,9 @@ const GroupListScreen = () => {
       </View>
 
       <View style={styles.itemContent}>
-        <Text style={styles.groupName} numberOfLines={1}>{item.groupName}</Text>
+        <Text style={styles.groupName} numberOfLines={1}>
+          {item.groupName}
+        </Text>
         <Text style={styles.groupDesc} numberOfLines={1}>
           {item.description || `${item.members.length} thành viên`}
         </Text>
@@ -56,10 +58,15 @@ const GroupListScreen = () => {
 
       <View style={styles.rightContent}>
         {item.description && (
-            <View style={styles.badge}>
-                <Ionicons name="person" size={10} color="#666" style={{marginRight: 2}}/>
-                <Text style={styles.badgeText}>{item.members.length}</Text>
-            </View>
+          <View style={styles.badge}>
+            <Ionicons
+              name="person"
+              size={10}
+              color="#666"
+              style={{ marginRight: 2 }}
+            />
+            <Text style={styles.badgeText}>{item.members.length}</Text>
+          </View>
         )}
         <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
       </View>
@@ -67,26 +74,30 @@ const GroupListScreen = () => {
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={styles.container} edges={["top"]}>
       <StatusBar barStyle="dark-content" backgroundColor="#F2F2F7" />
-      
-      <Header 
-        title="Nhóm của bạn" 
+
+      <Header
+        title="Nhóm của bạn"
         rightIcon={
-            <View style={{flexDirection: 'row', gap: 10}}>
-                <TouchableOpacity 
-                    style={styles.headerBtn}
-                    onPress={() => setShowJoinModal(true)}
-                >
-                    <Ionicons name="scan-outline" size={22} color={APP_COLOR.ORANGE} />
-                </TouchableOpacity>
-                <TouchableOpacity 
-                    style={styles.headerBtn}
-                    onPress={() => router.push('/create-group')}
-                >
-                    <Ionicons name="add" size={24} color={APP_COLOR.ORANGE} />
-                </TouchableOpacity>
-            </View>
+          <View style={{ flexDirection: "row", gap: 10 }}>
+            <TouchableOpacity
+              style={styles.headerBtn}
+              onPress={() => setShowJoinModal(true)}
+            >
+              <Ionicons
+                name="scan-outline"
+                size={22}
+                color={APP_COLOR.ORANGE}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.headerBtn}
+              onPress={() => router.push("/create-group")}
+            >
+              <Ionicons name="add" size={24} color={APP_COLOR.ORANGE} />
+            </TouchableOpacity>
+          </View>
         }
       />
 
@@ -95,18 +106,18 @@ const GroupListScreen = () => {
         renderItem={renderItem}
         keyExtractor={(item) => item.id.toString()}
         ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-                 <View style={styles.emptyIconBg}>
-                    <Ionicons name="people-outline" size={40} color="#999" />
-                 </View>
-                 <Text style={styles.emptyText}>Bạn chưa tham gia nhóm nào.</Text>
-                 <TouchableOpacity 
-                    style={styles.createBtn}
-                    onPress={() => router.push('/create-group')}
-                 >
-                    <Text style={styles.createBtnText}>Tạo nhóm mới</Text>
-                 </TouchableOpacity>
+          <View style={styles.emptyContainer}>
+            <View style={styles.emptyIconBg}>
+              <Ionicons name="people-outline" size={40} color="#999" />
             </View>
+            <Text style={styles.emptyText}>Bạn chưa tham gia nhóm nào.</Text>
+            <TouchableOpacity
+              style={styles.createBtn}
+              onPress={() => router.push("/create-group")}
+            >
+              <Text style={styles.createBtnText}>Tạo nhóm mới</Text>
+            </TouchableOpacity>
+          </View>
         }
         refreshing={isLoading}
         onRefresh={refetch}
@@ -114,9 +125,9 @@ const GroupListScreen = () => {
       />
 
       {/* JOIN GROUP MODAL */}
-      <JoinGroupModal 
-        visible={showJoinModal} 
-        onClose={() => setShowJoinModal(false)} 
+      <JoinGroupModal
+        visible={showJoinModal}
+        onClose={() => setShowJoinModal(false)}
         onSuccess={refetch}
       />
     </SafeAreaView>
@@ -126,34 +137,39 @@ const GroupListScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: "#F2F2F7",
   },
   center: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   // Header Styles
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 15,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: "#F2F2F7",
   },
   headerTitle: {
     fontSize: 28,
-    fontWeight: '800',
-    color: '#333',
+    fontWeight: "800",
+    color: "#333",
     letterSpacing: 0.5,
   },
   headerBtn: {
-    width: 40, height: 40,
+    width: 40,
+    height: 40,
     borderRadius: 20,
-    backgroundColor: 'white',
-    justifyContent: 'center', alignItems: 'center',
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4,
+    backgroundColor: "white",
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
     elevation: 2,
   },
 
@@ -163,80 +179,91 @@ const styles = StyleSheet.create({
     paddingBottom: 80,
   },
   groupItem: {
-    backgroundColor: 'white',
+    backgroundColor: "white",
     padding: 16,
     borderRadius: 16,
     marginBottom: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
     elevation: 2,
   },
   itemIcon: {
-    width: 50, height: 50,
+    width: 50,
+    height: 50,
     borderRadius: 16,
-    backgroundColor: '#FFF5E5',
-    justifyContent: 'center', alignItems: 'center',
+    backgroundColor: "#FFF5E5",
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: 15,
   },
   itemContent: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   groupName: {
     fontSize: 17,
-    fontWeight: '700',
-    color: '#333',
+    fontWeight: "700",
+    color: "#333",
     marginBottom: 4,
   },
   groupDesc: {
     fontSize: 13,
-    color: '#888',
+    color: "#888",
   },
   rightContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 10,
   },
   badge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F2F2F7',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F2F2F7",
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
   },
   badgeText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#666',
+    fontWeight: "600",
+    color: "#666",
   },
 
   // Empty State
   emptyContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 100,
     paddingHorizontal: 40,
   },
   emptyIconBg: {
-    width: 80, height: 80, borderRadius: 40,
-    backgroundColor: '#E5E5EA',
-    justifyContent: 'center', alignItems: 'center',
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: "#E5E5EA",
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: 20,
   },
   emptyText: {
-    color: '#666',
+    color: "#666",
     fontSize: 16,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: 20,
   },
   createBtn: {
     backgroundColor: APP_COLOR.ORANGE,
-    paddingHorizontal: 20, paddingVertical: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
     borderRadius: 25,
   },
   createBtnText: {
-    color: 'white', fontWeight: 'bold', fontSize: 15,
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 15,
   },
 });
 

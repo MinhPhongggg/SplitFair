@@ -4,13 +4,13 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { DefaultTheme, ThemeProvider } from "@react-navigation/native";
 import AppProvider from "@/context/app.context";
 import { ToastProvider } from "@/context/toast.context";
-import { useFonts } from 'expo-font';
-import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import Octicons from '@expo/vector-icons/Octicons';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { useFonts } from "expo-font";
+import * as SplashScreen from "expo-splash-screen";
+import { useEffect } from "react";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import Octicons from "@expo/vector-icons/Octicons";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 // 1. Import thêm QueryClient và Provider
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -52,7 +52,6 @@ const RootLayout = () => {
   };
 
   return (
-    // 3. Bọc <AppProvider> bằng <QueryClientProvider>
     <QueryClientProvider client={queryClient}>
       <GestureHandlerRootView>
         <RootSiblingParent>
@@ -67,13 +66,16 @@ const RootLayout = () => {
                   }}
                 >
                   <Stack.Screen name="index" options={{ headerShown: false }} />
-                  <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                  <Stack.Screen 
-                    name="create-group" 
-                    options={{ 
-                      presentation: 'modal', 
-                      headerShown: false 
-                    }} 
+                  <Stack.Screen
+                    name="(tabs)"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="create-group"
+                    options={{
+                      presentation: "modal",
+                      headerShown: false,
+                    }}
                   />
                   <Stack.Screen
                     name="(auth)/login"
@@ -85,6 +87,14 @@ const RootLayout = () => {
                   />
                   <Stack.Screen
                     name="(auth)/signup"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="(auth)/request.password"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="(auth)/forgot.password"
                     options={{ headerShown: false }}
                   />
                 </Stack>
