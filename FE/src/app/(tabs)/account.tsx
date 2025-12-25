@@ -16,6 +16,8 @@ import { router, useNavigation } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import auth from "@react-native-firebase/auth";
+import { GoogleSignin } from "@react-native-google-signin/google-signin";
 
 import ShareInput from "@/component/input/share.input";
 import { useCurrentApp } from "@/context/app.context";
@@ -193,13 +195,38 @@ const AccountPage = () => {
 
   const performLogout = async () => {
     try {
+      const user = auth().currentUser;
+
+      // 1. Logout Firebase (CHỈ khi có user)
+      if (user) {
+        const isGoogleUser = user.providerData.some(
+          (provider) => provider.providerId === "google.com"
+        );
+
+        await auth().signOut();
+
+        // 2. Nếu là Google user → logout Google
+        if (isGoogleUser) {
+          try {
+            await GoogleSignin.signOut();
+            await GoogleSignin.revokeAccess();
+          } catch (googleError) {
+            console.log("Google logout error (ignored):", googleError);
+          }
+        }
+      }
+
+      // 3. Xóa token backend (LUÔN LUÔN chạy)
       await AsyncStorage.removeItem("access_token");
+
+      // 4. Reset app
       setAppState(null);
-      showToast("success", "Đăng xuất", "Hẹn gặp lại bạn sớm!");
       router.replace("/(auth)/login");
+
+      showToast("success", "Đăng xuất", "Hẹn gặp lại bạn 👋");
     } catch (error) {
-      console.log("Logout error: ", error);
-      showToast("error", "Lỗi", "Không thể đăng xuất lúc này.");
+      console.log("Logout error:", error);
+      showToast("error", "Lỗi", "Không thể đăng xuất");
     }
   };
 
