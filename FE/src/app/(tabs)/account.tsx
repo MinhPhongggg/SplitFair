@@ -257,7 +257,7 @@ const AccountPage = () => {
 
         <View style={{ height: 20 }} />
 
-        <Section title="Cài đặt">
+        <Section title="Thông tin ">
           <SettingItem
             icon="language-outline"
             label="Ngôn ngữ"

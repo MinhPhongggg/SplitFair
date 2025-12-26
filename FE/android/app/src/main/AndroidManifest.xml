@@ -27,7 +27,7 @@
         <category android:name="android.intent.category.DEFAULT"/>
         <category android:name="android.intent.category.BROWSABLE"/>
         <data android:scheme="myapp"/>
-        <data android:scheme="exp+04-expo-router-hello-world"/>
+        <data android:scheme="exp+splitfair"/>
       </intent-filter>
     </activity>
   </application>

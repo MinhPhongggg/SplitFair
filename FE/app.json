@@ -1,14 +1,14 @@
 {
   "expo": {
-    "name": "04-expo-router-hello-world",
-    "slug": "04-expo-router-hello-world",
+    "name": "Split Fair",
+    "slug": "Split Fair",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./src/assets/icon.png",
+    "icon": "./src/assets/icon-2.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./src/assets/splash.png",
+      "image": "./src/assets/splash-4.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -19,7 +19,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./src/assets/adaptive-icon.png",
+        "foregroundImage": "./src/assets/adaptive-icon-2.png",
         "backgroundColor": "#ffffff"
       },
       "googleServicesFile": "./google-services.json",
