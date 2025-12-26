@@ -16,7 +16,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { APP_COLOR } from "@/utils/constant";
-import { pickImage, takePhoto, scanReceipt } from "@/api/ocr";
 
 // 1. Import Hook
 import { useExpenseCreation } from "@/hooks/useExpenseCreation";
@@ -46,47 +45,6 @@ const CreateExpenseScreen = () => {
 
   const [showPayerModal, setShowPayerModal] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
-
-  const handleScan = async () => {
-    Alert.alert("Quét hóa đơn", "Chọn phương thức", [
-      {
-        text: "Chụp ảnh",
-        onPress: async () => {
-          const uri = await takePhoto();
-          if (uri) processImage(uri);
-        },
-      },
-      {
-        text: "Chọn từ thư viện",
-        onPress: async () => {
-          const uri = await pickImage();
-          if (uri) processImage(uri);
-        },
-      },
-      { text: "Hủy", style: "cancel" },
-    ]);
-  };
-
-  const processImage = async (uri: string) => {
-    setIsScanning(true);
-    try {
-      const amount = await scanReceipt(uri);
-      if (amount) {
-        // FIX: Định dạng số thô từ OCR (vd: "500000") thành số có dấu chấm ("500.000")
-        const formattedAmount = calc.formatNumber(amount);
-        setters.setAmount(formattedAmount);
-
-        Alert.alert("Thành công", `Đã quét được số tiền: ${formattedAmount}đ`);
-      } else {
-        Alert.alert("Thất bại", "Không tìm thấy số tiền trong hóa đơn");
-      }
-    } catch (error: any) {
-      console.error("OCR Error:", error);
-      Alert.alert("Lỗi", "Không thể kết nối tới máy chủ OCR");
-    } finally {
-      setIsScanning(false);
-    }
-  };
 
   if (isLoadingMembers) {
     return (
@@ -149,7 +107,6 @@ const CreateExpenseScreen = () => {
             onPressPayer={() => setShowPayerModal(true)}
             amount={form.amount}
             setAmount={setters.setAmount}
-            onScan={handleScan}
           />
 
           {isScanning && (

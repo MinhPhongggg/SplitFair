@@ -1,5 +1,5 @@
 {
-  "name": "Split Fair",
+  "name": "Split Fair-DDP",
   "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {

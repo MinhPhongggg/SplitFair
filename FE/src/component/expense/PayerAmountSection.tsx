@@ -16,7 +16,6 @@ interface Props {
   onPressPayer: () => void;
   amount: string;
   setAmount: (val: string) => void;
-  onScan?: () => void;
 }
 
 export const PayerAmountSection = ({
@@ -25,7 +24,6 @@ export const PayerAmountSection = ({
   onPressPayer,
   amount,
   setAmount,
-  onScan,
 }: Props) => (
   <View style={styles.payerAmountSection}>
     <View style={styles.payerRow}>
@@ -52,12 +50,6 @@ export const PayerAmountSection = ({
       />
       <Text style={styles.currencySymbol}>₫</Text>
     </View>
-    {onScan && (
-      <TouchableOpacity style={styles.scanButton} onPress={onScan}>
-        <Ionicons name="scan-outline" size={20} color={APP_COLOR.ORANGE} />
-        <Text style={styles.scanText}>Quét hóa đơn</Text>
-      </TouchableOpacity>
-    )}
   </View>
 );
 
@@ -107,21 +99,5 @@ const styles = StyleSheet.create({
     color: APP_COLOR.ORANGE,
     minWidth: 100,
     textAlign: "center",
-  },
-  scanButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 15,
-    padding: 8,
-    backgroundColor: "#FFF5F0",
-    borderRadius: 8,
-    alignSelf: "center",
-  },
-  scanText: {
-    marginLeft: 6,
-    color: APP_COLOR.ORANGE,
-    fontWeight: "600",
-    fontSize: 14,
   },
 });

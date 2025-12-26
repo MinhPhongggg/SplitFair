@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Split Fair",
-    "slug": "Split Fair",
+    "name": "Split Fair-DDP",
+    "slug": "Split Fair-DDP",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./src/assets/icon-2.png",

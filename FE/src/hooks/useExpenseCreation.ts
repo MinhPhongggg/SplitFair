@@ -39,7 +39,6 @@ export const useExpenseCreation = (groupId: string, billId: string) => {
   const [splitInputs, setSplitInputs] = useState<SplitInput[]>([]);
 
   // --- HELPER FUNCTIONS ---
-  // Fix: Chỉ xóa dấu chấm phân cách hàng nghìn, giữ lại số nguyên thuần túy
   const unformatNumber = (val: string) => {
     if (!val) return "";
     return val
@@ -48,7 +47,6 @@ export const useExpenseCreation = (groupId: string, billId: string) => {
       .replace(/[^0-9]/g, "");
   };
 
-  // Fix: Đảm bảo format chuẩn vi-VN cho số tiền
   const formatNumber = (val: string | number) => {
     if (val === "" || val === undefined || val === null) return "";
     const cleanStr = unformatNumber(val.toString());
@@ -56,6 +54,7 @@ export const useExpenseCreation = (groupId: string, billId: string) => {
     return new Intl.NumberFormat("vi-VN").format(parseInt(cleanStr));
   };
 
+  // Khởi tạo danh sách thành viên
   useEffect(() => {
     if (members) {
       const currentUserId = appState?.userId ? String(appState.userId) : "";
@@ -69,22 +68,56 @@ export const useExpenseCreation = (groupId: string, billId: string) => {
             : members[0]?.userId || members[0]?.user?.id || ""
         );
       }
+
+      const totalAmountNum = parseInt(unformatNumber(amount)) || 0;
+      const count = members.length || 1;
+      const equalShare = Math.round(totalAmountNum / count);
+
       setSplitInputs(
         members.map((m) => ({
           userId: m.userId || m.user?.id || "",
           name: m.userName || m.user?.userName || "Thành viên",
-          value: splitMethod === "SHARES" ? "1" : "0",
+          // Mặc định chia đều số tiền ban đầu
+          value:
+            splitMethod === "EXACT"
+              ? formatNumber(equalShare)
+              : splitMethod === "SHARES"
+              ? "1"
+              : "0",
           isChecked: true,
-          isManual: false,
+          isManual: false, // Ban đầu là Auto để có thể cập nhật theo tổng chi tiêu
         }))
       );
     }
-  }, [members, splitMethod]);
+  }, [members, splitMethod]); // Chỉ chạy khi đổi method hoặc load members
+
+  // Cập nhật lại các ô "Auto" khi tổng chi tiêu (amount) thay đổi
+  useEffect(() => {
+    const totalAmountNum = parseInt(unformatNumber(amount)) || 0;
+    if (splitMethod === "EQUAL" || splitMethod === "EXACT") {
+      setSplitInputs((prev) => {
+        const autoUsers = prev.filter((i) => i.isChecked && !i.isManual);
+        const manualTotal = prev
+          .filter((i) => i.isChecked && i.isManual)
+          .reduce(
+            (sum, i) => sum + (parseInt(unformatNumber(i.value)) || 0),
+            0
+          );
+        const remaining = Math.max(0, totalAmountNum - manualTotal);
+
+        if (autoUsers.length === 0) return prev;
+
+        const share = Math.round(remaining / autoUsers.length);
+        return prev.map((i) =>
+          !i.isManual && i.isChecked ? { ...i, value: formatNumber(share) } : i
+        );
+      });
+    }
+  }, [amount]);
 
   const { calculatedShares, totalCalculated, isValid } = useMemo(() => {
     const totalAmountNum = parseInt(unformatNumber(amount)) || 0;
     const participating = splitInputs.filter((m) => m.isChecked);
-    const count = participating.length || 1;
     let calcTotal = 0;
 
     const results = splitInputs.map((input) => {
@@ -92,16 +125,15 @@ export const useExpenseCreation = (groupId: string, billId: string) => {
         return { ...input, calculatedAmount: 0, displayAmount: "0đ" };
 
       let val = 0;
-      // Lấy giá trị số thực tế từ chuỗi nhập vào
       const inputVal =
         input.value === "" ? 0 : parseInt(unformatNumber(input.value)) || 0;
 
       switch (splitMethod) {
         case "EQUAL":
-          val = totalAmountNum / count;
+          val = totalAmountNum / (participating.length || 1);
           break;
         case "EXACT":
-          val = inputVal; // Logic chia theo số tiền: lấy trực tiếp giá trị đã nhập
+          val = inputVal;
           break;
         case "PERCENTAGE":
           val = (totalAmountNum * (parseFloat(input.value) || 0)) / 100;
@@ -130,59 +162,44 @@ export const useExpenseCreation = (groupId: string, billId: string) => {
     return {
       calculatedShares: results,
       totalCalculated: calcTotal,
-      isValid: Math.abs(calcTotal - totalAmountNum) < 10, // Chấp nhận sai số làm tròn nhỏ
+      isValid: Math.abs(calcTotal - totalAmountNum) < 10,
     };
   }, [amount, splitMethod, splitInputs]);
 
   const updateInput = (uid: string, val: string) => {
-    // Xử lý giá trị nhập vào tùy theo phương thức chia
     let cleanVal =
       splitMethod === "PERCENTAGE" || splitMethod === "SHARES"
         ? val.replace(/[^0-9.]/g, "")
         : unformatNumber(val);
 
     setSplitInputs((prev) => {
-      let processedVal = cleanVal;
+      let processedVal =
+        splitMethod === "EXACT" ? formatNumber(cleanVal) : cleanVal;
 
-      // Fix: Nếu chia theo số tiền (EXACT), hiển thị dấu chấm ngay khi gõ
-      if (splitMethod === "EXACT") {
-        processedVal = formatNumber(cleanVal);
-      }
-
+      // Bước 1: Cập nhật giá trị cho người vừa nhập
       const nextState = prev.map((i) =>
-        i.userId === uid
-          ? {
-              ...i,
-              value: processedVal,
-              isManual: processedVal !== "" && processedVal !== "0",
-            }
-          : i
+        i.userId === uid ? { ...i, value: processedVal, isManual: true } : i
       );
 
-      const isPercent = splitMethod === "PERCENTAGE";
-      const totalTarget = isPercent
-        ? 100
-        : parseInt(unformatNumber(amount)) || 0;
+      // Nếu là EQUAL hoặc SHARES thì không cần logic cân đối thủ công
+      if (splitMethod === "EQUAL" || splitMethod === "SHARES") return nextState;
 
-      // Trả về ngay nếu là các phương thức không cần chia tự động phần còn lại
-      if (
-        splitMethod === "EQUAL" ||
-        splitMethod === "SHARES" ||
-        (!isPercent && totalTarget === 0)
-      ) {
-        return nextState;
-      }
+      const totalTarget =
+        splitMethod === "PERCENTAGE"
+          ? 100
+          : parseInt(unformatNumber(amount)) || 0;
 
-      // Logic tính toán phần còn lại cho các thành viên chưa nhập tay
-      const manualInputs = nextState.filter((i) => i.isChecked && i.isManual);
-      const manualTotal = manualInputs.reduce(
-        (sum, i) =>
-          sum +
-          (isPercent
-            ? parseFloat(i.value) || 0
-            : parseInt(unformatNumber(i.value)) || 0),
-        0
-      );
+      // Bước 2: Tính toán phần còn lại cho những người Auto
+      const manualTotal = nextState
+        .filter((i) => i.isChecked && i.isManual)
+        .reduce(
+          (sum, i) =>
+            sum +
+            (splitMethod === "PERCENTAGE"
+              ? parseFloat(i.value) || 0
+              : parseInt(unformatNumber(i.value)) || 0),
+          0
+        );
 
       const autoUsers = nextState.filter((i) => i.isChecked && !i.isManual);
       const remaining = Math.max(0, totalTarget - manualTotal);
@@ -193,9 +210,10 @@ export const useExpenseCreation = (groupId: string, billId: string) => {
           if (i.isChecked && !i.isManual) {
             return {
               ...i,
-              value: isPercent
-                ? Number(rawShare.toFixed(2)).toString()
-                : formatNumber(Math.round(rawShare)), // Tự động điền số tiền đã định dạng
+              value:
+                splitMethod === "PERCENTAGE"
+                  ? Number(rawShare.toFixed(2)).toString()
+                  : formatNumber(Math.round(rawShare)),
             };
           }
           return i;
@@ -217,10 +235,16 @@ export const useExpenseCreation = (groupId: string, billId: string) => {
 
   const changeMethod = (method: SplitMethod) => {
     setSplitMethod(method);
+    const totalAmountNum = parseInt(unformatNumber(amount)) || 0;
     setSplitInputs((prev) =>
       prev.map((i) => ({
         ...i,
-        value: method === "SHARES" ? "1" : "0",
+        value:
+          method === "SHARES"
+            ? "1"
+            : method === "EXACT"
+            ? formatNumber(Math.round(totalAmountNum / prev.length))
+            : "0",
         isManual: false,
       }))
     );
@@ -232,7 +256,6 @@ export const useExpenseCreation = (groupId: string, billId: string) => {
       return showToast("warning", "Thông báo", "Chọn ít nhất 1 người.");
     if (!description || !amount || !paidBy)
       return showToast("warning", "Thiếu thông tin", "Điền đủ thông tin.");
-
     if (!isValid)
       return showToast(
         "error",
