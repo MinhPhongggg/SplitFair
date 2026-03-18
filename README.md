@@ -1,4 +1,5 @@
-1. Split Fair-DDP - Group Expense Manager
+https://www.canva.com/design/DAG8rW-U8tA/65rPVlA-5AHGn9rUMrnFew/edit Image demo
+1. Split Fair-DDP - Group Expense Manager 
 Split Fair-DDP is a cross-platform mobile application designed to simplify group financial management. It automates bill splitting, tracks shared expenses, and ensures transparency among group members using smart AI-powered receipt scanning.
 
 2. 🚀 Tech Stack (Front-end)
