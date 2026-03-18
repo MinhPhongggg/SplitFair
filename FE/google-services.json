@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "828370882786-91ueaj7ttsfj3a7el0gp1r18mfpn7cas.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.splitfair.app",
+            "certificate_hash": "3b408debba58d149eba526c8861932b7732a67dc"
+          }
+        },
+        {
           "client_id": "828370882786-ls2u7tq2vdrrllrkkvb85ce366viu3fu.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

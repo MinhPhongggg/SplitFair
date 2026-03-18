@@ -1,8 +1,8 @@
 {
   "expo": {
     "name": "Split Fair-DDP",
-    "slug": "Split Fair-DDP",
-    "version": "1.0.0",
+    "slug": "split-fair-ddp",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./src/assets/icon-2.png",
     "scheme": "myapp",
@@ -18,12 +18,20 @@
       "googleServicesFile": "./GoogleService-Info.plist"
     },
     "android": {
+      "package": "com.splitfair.app",
+      "versionCode": 4,
+      "softwareKeyboardLayoutMode": "pan",
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/adaptive-icon-2.png",
         "backgroundColor": "#ffffff"
       },
       "googleServicesFile": "./google-services.json",
-      "package": "com.splitfair.app"
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "NOTIFICATIONS"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -37,7 +45,14 @@
       [
         "expo-build-properties",
         {
-          "ios": { "useFrameworks": "static" }
+          "ios": {
+            "useFrameworks": "static"
+          },
+          "android": {
+            "extraMavenRepos": [
+              "$rootDir/../node_modules/@react-native-google-signin/google-signin/android/repo"
+            ]
+          }
         }
       ],
       "expo-asset",
@@ -45,6 +60,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "378f4102-860f-426e-bb80-8546a97084cf"
+      }
     }
   }
 }
